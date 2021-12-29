@@ -1,5 +1,5 @@
-import std/os
-import std/strutils
+from std/os import execShellCmd, fileExists
+from std/strutils import parseInt
 
 include config
 
@@ -18,19 +18,23 @@ proc addNewFile() =
   discard os.execShellCmd("clear")
   echo "Type the full path to the dotfile, including its name"
   let dotfileLocation = readLine(stdin)
+  let copyCmd = "cp " & dotfileLocation & " ./dotfiles/"
 
-  var backupOption = false
-  echo "Should a backup be created before linking the file? [y/n]"
-  case readLine(stdin):
-    of "y": backupOption = true
-    of "n": backupOption = false
-    else: discard
+  # If the copying is error free, add the path to the storage file
+  if os.execShellCmd(copyCmd) == 0:
+    writeLine(f, dotfileLocation)
+  discard readLine(stdin)
 
-
-  writeLine(f, dotfileLocation)
+  # var backupOption = false
+  # echo "Should a backup be created before linking the file? [Y/n]"
+  # case readLine(stdin):
+  #   of "y": backupOption = true
+  #   of "n": backupOption = false
+  #   of "": backupOption = true
+  #   else: discard
 
 proc printSavedFiles() =
-  ##[ Read the entire file at once and print its contents. ]##
+  ##[ Read the entire storage file at once and print its contents. ]##
   if fileExists(filePath):
     echo readFile(filePath)
     discard readLine(stdin)
@@ -38,8 +42,11 @@ proc printSavedFiles() =
     echo "No saved files yet!"
     discard readLine(stdin)
 
+proc linkAllSavedFiles() =
+  discard
+
 proc main() =
-  ##[ Entry Point. ]##
+  ##[ Entry Point and main loop. ]##
   while true:
     discard os.execShellCmd("clear")
     echo "Welcome to connect_the_dotfiles, your place to organize your dotties!"
@@ -47,7 +54,8 @@ proc main() =
     echo "\n[1]: Add new dotfile"
     echo "[2]: Remove existing dotfile"
     echo "[3]: List saved dotfiles"
-    echo "[4]: Quit\n"
+    echo "[4]: Link all saved dotfiles"
+    echo "[5]: Quit\n"
 
     stdout.write("> ") # Not echo cause of newline
     case parseInt(readLine(stdin)): # Error prone: If NaN -> Error
@@ -58,6 +66,8 @@ proc main() =
       of 3:
         printSavedFiles()
       of 4:
+        linkAllSavedFiles()
+      of 5:
         break
       else:
         continue
