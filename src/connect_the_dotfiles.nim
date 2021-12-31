@@ -1,10 +1,11 @@
-from std/os import execShellCmd, fileExists, extractFilename, splitPath,
-    createSymlink, getHomeDir, expandTilde, copyFileToDir, removeFile, existsOrCreateDir
+from std/os import execShellCmd, fileExists, extractFilename, createSymlink,
+    getHomeDir, expandTilde, copyFileToDir, removeFile, existsOrCreateDir
 from std/strutils import parseInt
 
+const programDir = getHomeDir() & ".ctd/"
 const storageFile = getHomeDir() & ".ctd/data.txt"
 const dotfilesLocation = getHomeDir() & ".ctd/dotfiles/"
-# const backupLocation = getHomeDir() & ".ctd/backups/"
+const backupLocation = getHomeDir() & ".ctd/backups/"
 
 proc addNewFile() =
   ##[ Add a new dotfile/location-combination to the storage file. ]##
@@ -65,8 +66,7 @@ proc linkAllSavedFiles() =
 
       try:
         createSymlink(dotfilesLocation & fileName, line)
-        echo "Created Symlink: ~/git/connect_the_dotfiles/dotfiles/" &
-            fileName & " to: " & line
+        echo "Created Symlink: " & dotfilesLocation & fileName & " to: " & line
       except OSError as e:
         echo "Error: ", e.msg
         echo "Shall the existing file be overwritten? [y/N]"
@@ -75,11 +75,9 @@ proc linkAllSavedFiles() =
           of "y":
             removeFile(line)
             createSymlink(dotfilesLocation & fileName, line)
-            echo "Created Symlink: ~/git/connect_the_dotfiles/dotfiles/" &
-                fileName & " to: " & line
+            echo "Created Symlink: " & dotfilesLocation & fileName & " to: " & line
           else:
             discard
-
 
     discard readLine(stdin)
 
@@ -94,9 +92,9 @@ proc main() =
   ##[ Entry Point and main loop. ]##
 
   # Create mandatory dirs on first start
-  discard existsOrCreateDir(getHomeDir() & ".ctd/")
-  discard existsOrCreateDir(getHomeDir() & ".ctd/dotfiles")
-  discard existsOrCreateDir(getHomeDir() & ".ctd/backups")
+  discard existsOrCreateDir(programDir)
+  discard existsOrCreateDir(dotfilesLocation)
+  discard existsOrCreateDir(backupLocation)
 
   while true:
     discard os.execShellCmd("clear")
