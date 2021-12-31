@@ -1,29 +1,33 @@
-from std/os import execShellCmd, fileExists
+from std/os import execShellCmd, fileExists, extractFilename, splitPath,
+    createSymlink, getHomeDir, expandTilde, copyFileToDir, removeFile, existsOrCreateDir
 from std/strutils import parseInt
 
-include config
+const storageFile = getHomeDir() & ".ctd/data.txt"
+const dotfilesLocation = getHomeDir() & ".ctd/dotfiles/"
+# const backupLocation = getHomeDir() & ".ctd/backups/"
 
 proc addNewFile() =
   ##[ Add a new dotfile/location-combination to the storage file. ]##
   var f: File
 
-  if fileExists(filePath):
-    # If the dotfile/location-combination storage file already exists,
+  if fileExists(storageFile):
+    # If the storage file already exists,
     # appen to it. Otherwise use fmWrite to create it at first.
-    f = open(filePath, fmAppend)
+    f = open(storageFile, fmAppend)
   else:
-    f = open(filePath, fmWrite)
+    f = open(storageFile, fmWrite)
   defer: f.close()
 
   discard os.execShellCmd("clear")
   echo "Type the full path to the dotfile, including its name"
-  let dotfileLocation = readLine(stdin)
-  let copyCmd = "cp " & dotfileLocation & " ./dotfiles/"
+  let chosenDotfile = readLine(stdin)
 
-  # If the copying is error free, add the path to the storage file
-  if os.execShellCmd(copyCmd) == 0:
-    writeLine(f, dotfileLocation)
-  discard readLine(stdin)
+  try:
+    os.copyFileToDir(expandTilde(chosenDotfile), dotfilesLocation)
+    writeLine(f, expandTilde(chosenDotfile))
+  except OSError as e:
+    echo "Could not copy given dotfile: ", e.msg
+    discard readLine(stdin)
 
   # var backupOption = false
   # echo "Should a backup be created before linking the file? [Y/n]"
@@ -35,18 +39,65 @@ proc addNewFile() =
 
 proc printSavedFiles() =
   ##[ Read the entire storage file at once and print its contents. ]##
-  if fileExists(filePath):
-    echo readFile(filePath)
+  if fileExists(storageFile):
+    echo readFile(storageFile)
     discard readLine(stdin)
   else:
     echo "No saved files yet!"
     discard readLine(stdin)
 
 proc linkAllSavedFiles() =
-  discard
+  var f: File
+
+  if not fileExists(storageFile):
+    echo "No saved files yet!"
+    discard readLine(stdin)
+  else:
+    f = open(storageFile, fmRead)
+    defer: f.close()
+
+    for line in lines(f):
+      let fileName = extractFilename(line)
+      # let filePath = line[0 .. ^(len(fileName)+1)]
+
+      echo "Trying to create Symlink: " & dotfilesLocation & fileName &
+          " to: " & line
+
+      try:
+        createSymlink(dotfilesLocation & fileName, line)
+        echo "Created Symlink: ~/git/connect_the_dotfiles/dotfiles/" &
+            fileName & " to: " & line
+      except OSError as e:
+        echo "Error: ", e.msg
+        echo "Shall the existing file be overwritten? [y/N]"
+
+        case readLine(stdin):
+          of "y":
+            removeFile(line)
+            createSymlink(dotfilesLocation & fileName, line)
+            echo "Created Symlink: ~/git/connect_the_dotfiles/dotfiles/" &
+                fileName & " to: " & line
+          else:
+            discard
+
+
+    discard readLine(stdin)
+
+  # for file in fileNames:
+  #   if not fileExists("./dotfiles/" & file):
+  #     echo file & " is in your storage file but not in your dotfiles directory!"
+  #     discard readLine(stdin)
+  #   else:
+  #     discard os.execShellCmd("ln -s ./dotfiles/" & file
 
 proc main() =
   ##[ Entry Point and main loop. ]##
+
+  # Create mandatory dirs on first start
+  discard existsOrCreateDir(getHomeDir() & ".ctd/")
+  discard existsOrCreateDir(getHomeDir() & ".ctd/dotfiles")
+  discard existsOrCreateDir(getHomeDir() & ".ctd/backups")
+
   while true:
     discard os.execShellCmd("clear")
     echo "Welcome to connect_the_dotfiles, your place to organize your dotties!"
@@ -63,6 +114,7 @@ proc main() =
         addNewFile()
       of 2:
         echo "TODO"
+        discard readLine(stdin)
       of 3:
         printSavedFiles()
       of 4:
