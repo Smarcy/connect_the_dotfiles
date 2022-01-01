@@ -3,10 +3,10 @@ from std/os import execShellCmd, fileExists, extractFilename, createSymlink,
 from std/strutils import parseInt
 from std/terminal import eraseScreen, styledWriteLine, ForegroundColor
 
-const programDir = getHomeDir() & ".ctd/"
-const storageFile = getHomeDir() & ".ctd/data.txt"
-const dotfilesLocation = getHomeDir() & ".ctd/dotfiles/"
-const backupLocation = getHomeDir() & ".ctd/backups/"
+const programDir = getHomeDir() & ".config/ctd/"
+const storageFile = getHomeDir() & ".config/ctd/data.txt"
+const dotfilesLocation = getHomeDir() & ".config/ctd/dotfiles/"
+const backupLocation = getHomeDir() & ".config/ctd/backups/"
 
 proc addNewFile() =
   ##[ Add a new dotfile/location-combination to the storage file. ]##
