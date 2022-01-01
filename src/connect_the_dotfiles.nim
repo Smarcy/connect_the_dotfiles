@@ -1,6 +1,7 @@
 from std/os import execShellCmd, fileExists, extractFilename, createSymlink,
     getHomeDir, expandTilde, copyFileToDir, removeFile, existsOrCreateDir
 from std/strutils import parseInt
+from std/terminal import eraseScreen, styledWriteLine, ForegroundColor
 
 const programDir = getHomeDir() & ".ctd/"
 const storageFile = getHomeDir() & ".ctd/data.txt"
@@ -12,14 +13,14 @@ proc addNewFile() =
   var f: File
 
   if fileExists(storageFile):
-    # If the storage file already exists,
-    # appen to it. Otherwise use fmWrite to create it at first.
+    # If the storage file already exists, append to it.
+    # Otherwise use fmWrite to create it at first.
     f = open(storageFile, fmAppend)
   else:
     f = open(storageFile, fmWrite)
   defer: f.close()
 
-  discard os.execShellCmd("clear")
+  eraseScreen()
   echo "Type the full path to the dotfile, including its name"
   let chosenDotfile = readLine(stdin)
 
@@ -27,7 +28,7 @@ proc addNewFile() =
     os.copyFileToDir(expandTilde(chosenDotfile), dotfilesLocation)
     writeLine(f, expandTilde(chosenDotfile))
   except OSError as e:
-    echo "Could not copy given dotfile: ", e.msg
+    terminal.styledWriteLine(stdout, fgRed, "Could not copy given dotfile: ", e.msg)
     discard readLine(stdin)
 
   # var backupOption = false
@@ -58,6 +59,7 @@ proc linkAllSavedFiles() =
     defer: f.close()
 
     for line in lines(f):
+      eraseScreen()
       let fileName = extractFilename(line)
       # let filePath = line[0 .. ^(len(fileName)+1)]
 
@@ -66,20 +68,21 @@ proc linkAllSavedFiles() =
 
       try:
         createSymlink(dotfilesLocation & fileName, line)
-        echo "Created Symlink: " & dotfilesLocation & fileName & " to: " & line
+        terminal.styledWriteLine(stdout, fgGreen, "Created Symlink: " &
+            dotfilesLocation & fileName & " to: " & line)
       except OSError as e:
-        echo "Error: ", e.msg
+        terminal.styledWriteLine(stdout, fgRed, "Error: ", e.msg)
         echo "Shall the existing file be overwritten? [y/N]"
 
         case readLine(stdin):
           of "y":
             removeFile(line)
             createSymlink(dotfilesLocation & fileName, line)
-            echo "Created Symlink: " & dotfilesLocation & fileName & " to: " & line
+            terminal.styledWriteLine(stdout, fgGreen, "Created Symlink: " &
+                dotfilesLocation & fileName & " to: " & line)
+            discard readLine(stdin)
           else:
             discard
-
-    discard readLine(stdin)
 
   # for file in fileNames:
   #   if not fileExists("./dotfiles/" & file):
@@ -97,7 +100,7 @@ proc main() =
   discard existsOrCreateDir(backupLocation)
 
   while true:
-    discard os.execShellCmd("clear")
+    eraseScreen()
     echo "Welcome to connect_the_dotfiles, your place to organize your dotties!"
     echo "Please choose an option:"
     echo "\n[1]: Add new dotfile"
