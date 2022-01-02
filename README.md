@@ -17,6 +17,19 @@ If you do not read carefully before you type, **you may mess up your system irre
 This software does create symlinks on your machine and even, if wanted, delete files.
 Thus, **think** before you type. Even better: study the source code.
 
+### Installation
+
+Either
+
+* Use the binary in `bin`
+
+
+or
+
+* Install Nim
+* Clone this repository
+* Run `nimble m` in the `connect_the_dotfiles/` directory
+
 ### Functionality
 
 - Gather all your configuration files in a single directory
@@ -25,11 +38,12 @@ Thus, **think** before you type. Even better: study the source code.
 
 ### Info
 
-Relevant directories:
+Relevant files & directories:
 
 * `~/.config/ctd/`
-* `~/.config/ctd/dotfiles`
-* `~/.config/ctd/backups`
+* `~/.config/ctd/data.txt`
+* `~/.config/ctd/dotfiles/`
+* `~/.config/ctd/backups/`
 
 
 ### Future Ideas
@@ -43,5 +57,6 @@ funny journey will lead to.
 * [ ] Remove existing files
 * [ ] Link only selected files
 * [ ] Link only unlinked files
+* [ ] Make `CTD` usable by passing arguments to the binary
 
 To be continued
