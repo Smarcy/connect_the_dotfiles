@@ -23,8 +23,25 @@ Thus, **think** before you type. Even better: study the source code.
   - It is recommended to make that specific directory verison controlled (e.g. `Git`)
 - Let `CTD` automatically create links at the needed location
 
+### Info
+
+Relevant directories:
+
+* `~/.config/ctd/`
+* `~/.config/ctd/dotfiles`
+* `~/.config/ctd/backups`
+
+
 ### Future Ideas
 
 This is the first version that is even running and working,
 therefore it is not doing too much yet and I'm not even sure yet where this
 funny journey will lead to.
+
+### TODO
+
+* [ ] Remove existing files
+* [ ] Link only selected files
+* [ ] Link only unlinked files
+
+To be continued
