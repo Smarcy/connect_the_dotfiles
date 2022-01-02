@@ -1,7 +1,7 @@
 from std/os import execShellCmd, fileExists, extractFilename, createSymlink,
     getHomeDir, expandTilde, copyFileToDir, removeFile, existsOrCreateDir
 from std/strutils import parseInt
-from std/terminal import eraseScreen, styledWriteLine, ForegroundColor
+from std/terminal import styledWriteLine, ForegroundColor
 
 const programDir = getHomeDir() & ".config/ctd/"
 const storageFile = getHomeDir() & ".config/ctd/data.txt"
@@ -20,7 +20,7 @@ proc addNewFile() =
     f = open(storageFile, fmWrite)
   defer: f.close()
 
-  eraseScreen()
+  discard os.execShellCmd("clear")
   echo "Type the full path to the dotfile, including its name"
   let chosenDotfile = readLine(stdin)
 
@@ -49,6 +49,7 @@ proc printSavedFiles() =
     discard readLine(stdin)
 
 proc linkAllSavedFiles() =
+  ##[ Create Symlinks for all files that have been added before. ]##
   var f: File
 
   if not fileExists(storageFile):
@@ -59,7 +60,7 @@ proc linkAllSavedFiles() =
     defer: f.close()
 
     for line in lines(f):
-      eraseScreen()
+      discard os.execShellCmd("clear")
       let fileName = extractFilename(line)
       # let filePath = line[0 .. ^(len(fileName)+1)]
 
@@ -72,7 +73,7 @@ proc linkAllSavedFiles() =
             dotfilesLocation & fileName & " to: " & line)
       except OSError as e:
         terminal.styledWriteLine(stdout, fgRed, "Error: ", e.msg)
-        echo "Shall the existing file be overwritten? [y/N]"
+        terminal.styledWriteLine(stdout, fgYellow, "Shall the existing file be overwritten? [y/N]")
 
         case readLine(stdin):
           of "y":
@@ -100,7 +101,7 @@ proc main() =
   discard existsOrCreateDir(backupLocation)
 
   while true:
-    eraseScreen()
+    discard os.execShellCmd("clear")
     echo "Welcome to connect_the_dotfiles, your place to organize your dotties!"
     echo "Please choose an option:"
     echo "\n[1]: Add new dotfile"
