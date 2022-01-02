@@ -3,7 +3,7 @@
 ## Awesome Tool to organize your dotfiles!
 
 <div align="center">
-<img src="https://github.com/Smarcy/connect_the_dotfiles/assets/introMenu.png">
+<img src="https://github.com/Smarcy/connect_the_dotfiles/blob/master/assets/introMenu.png">
 </div>
 
 ### Disclaimer
