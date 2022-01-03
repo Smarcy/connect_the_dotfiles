@@ -23,6 +23,8 @@ Thus, **think** before you type. Even better: study the source code.
 Either
 
 * Use the binary in `bin/`
+  * You may just start the binary
+  * Or pass parameters to it (--help for usage guide)
 
 
 or
@@ -64,5 +66,8 @@ funny journey will lead to.
 * [ ] Link only selected files
 * [ ] Link only unlinked files
 * [ ] Make `CTD` usable by passing parameters to the binary
+* [ ] Revert all links and replace them with the actual files
+* [ ] Option to backup added origin files
+* [ ] Option to refresh backup files to current state
 
 To be continued

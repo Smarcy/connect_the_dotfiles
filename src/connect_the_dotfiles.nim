@@ -10,16 +10,20 @@ const dotfilesLocation = getHomeDir() & ".config/ctd/dotfiles/"
 const backupLocation = getHomeDir() & ".config/ctd/backups/"
 
 proc printUsage() =
+  ##[ Obvious. ]##
   echo """
 
   Available parameters:
 
   --add=<path>, -a=<path>      Add given file to file list
   --list, -l                   List all saved files
+  --help, -h                   Print usage guide (this)
   """
 
-proc addNewFile() =
+proc addNewFile(chosenDotfile: string) =
   ##[ Add a new dotfile/location-combination to the storage file. ]##
+  var chosenDotfile = chosenDotfile
+  var waitForUserInput: bool
   var f: File
 
   if fileExists(storageFile):
@@ -30,16 +34,21 @@ proc addNewFile() =
     f = open(storageFile, fmWrite)
   defer: f.close()
 
-  discard os.execShellCmd("clear")
-  echo "Type the full path to the dotfile, including its name"
-  let chosenDotfile = readLine(stdin)
+  # chosenDotfile is empty if addNewFile is called from within the binary, without cmdline params
+  if chosenDotfile == "":
+    discard os.execShellCmd("clear")
+    echo "Type the full path to the dotfile, including its name"
+
+    waitForUserInput = true
+    chosenDotfile = readLine(stdin)
 
   try:
     os.copyFileToDir(expandTilde(chosenDotfile), dotfilesLocation)
     writeLine(f, expandTilde(chosenDotfile))
   except OSError as e:
     terminal.styledWriteLine(stdout, fgRed, "Could not copy given dotfile: ", e.msg)
-    discard readLine(stdin)
+
+    if waitForUserInput: discard readLine(stdin)
 
   # var backupOption = false
   # echo "Should a backup be created before linking the file? [Y/n]"
@@ -48,24 +57,6 @@ proc addNewFile() =
   #   of "n": backupOption = false
   #   of "": backupOption = true
   #   else: discard
-
-proc addNewFile(chosendotfile: string) =
-  ##[ Same as addNewFile but path was given by cmdline ]##
-  var f: File
-
-  if fileExists(storageFile):
-    # If the storage file already exists, append to it.
-    # Otherwise use fmWrite to create it at first.
-    f = open(storageFile, fmAppend)
-  else:
-    f = open(storageFile, fmWrite)
-  defer: f.close()
-
-  try:
-    os.copyFileToDir(expandTilde(chosendotfile), dotfilesLocation)
-    writeLine(f, expandTilde(chosendotfile))
-  except OSError as e:
-    terminal.styledWriteLine(stdout, fgRed, "Could not copy given dotfile: ", e.msg)
 
 proc printSavedFiles(waitForUserInput: bool) =
   ##[ Read the entire storage file at once and print its contents. ]##
@@ -141,7 +132,7 @@ proc main() =
     stdout.write("> ") # Not echo cause of newline
     case parseInt(readLine(stdin)): # Error prone: If NaN -> Error
       of 1:
-        addNewFile()
+        addNewFile("")
       of 2:
         echo "TODO"
         discard readLine(stdin)

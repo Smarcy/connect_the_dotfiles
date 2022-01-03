@@ -17,3 +17,6 @@ requires "nim >= 1.6.0"
 
 task m, "Build and Run..":
   exec("nim c -r -o:bin/ctd src/connect_the_dotfiles.nim")
+
+task b, "Build only":
+  exec("nim c -o:bin/ctd src/connect_the_dotfiles.nim")
