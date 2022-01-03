@@ -1,6 +1,13 @@
 # Connect The Dotfiles (CTD)
 
-## Awesome Tool to organize your dotfiles!
+- [Connect The Dotfiles (CTD)](#connect-the-dotfiles--ctd-)
+  * [Disclaimer](#disclaimer)
+  * [Installation](#installation)
+  * [Functionality](#functionality)
+  * [Info](#info)
+  * [OS Support](#os-support)
+  * [Future Ideas](#future-ideas)
+  * [TODO](#todo)
 
 <div align="center">
 <img src="https://github.com/Smarcy/connect_the_dotfiles/blob/master/assets/introMenu.png">
@@ -36,7 +43,7 @@ or
 ## Functionality
 
 - Gather all your configuration files in a single directory
-  - It is recommended to make that specific directory verison controlled (e.g. `Git`)
+  - It is recommended to make that specific directory version controlled (e.g. `Git`)
 - Let `CTD` automatically create links at the needed location
 
 ## Info

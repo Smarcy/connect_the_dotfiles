@@ -121,16 +121,20 @@ proc main() =
 
   while true:
     discard os.execShellCmd("clear")
-    echo "Welcome to connect_the_dotfiles, your place to organize your dotties!"
-    echo "Please choose an option:"
-    echo "\n[1]: Add new dotfile"
-    echo "[2]: Remove existing dotfile"
-    echo "[3]: List saved dotfiles"
-    echo "[4]: Link all saved dotfiles"
-    echo "[5]: Quit\n"
+    echo """
+Welcome to connect_the_dotfiles, your place to organize your dotties!
+Please choose an option:
+
+[1]: Add new dotfile
+[2]: Remove existing dotfile
+[3]: List saved dotfiles
+[4]: Link all saved dotfiles
+[5]: Quit
+
+    """
 
     stdout.write("> ") # Not echo cause of newline
-    case parseInt(readLine(stdin)): # Error prone: If NaN -> Error
+    case parseInt(readLine(stdin)): # Error prone: If NaN -> Error //FIXME
       of 1:
         addNewFile("")
       of 2:
