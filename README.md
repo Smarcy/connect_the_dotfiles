@@ -22,12 +22,12 @@ Thus, **think** before you type. Even better: study the source code.
 
 Either
 
-* Use the binary in `bin`
+* Use the binary in `bin/`
 
 
 or
 
-* Install Nim
+* Install Nim (I recommend [choosenim](https://github.com/dom96/choosenim))
 * Clone this repository
 * Run `nimble m` in the `connect_the_dotfiles/` directory
 
@@ -63,6 +63,6 @@ funny journey will lead to.
 * [ ] Remove existing files
 * [ ] Link only selected files
 * [ ] Link only unlinked files
-* [ ] Make `CTD` usable by passing arguments to the binary
+* [ ] Make `CTD` usable by passing parameters to the binary
 
 To be continued

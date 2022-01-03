@@ -1,12 +1,22 @@
 from std/os import execShellCmd, fileExists, extractFilename, createSymlink,
-    getHomeDir, expandTilde, copyFileToDir, removeFile, existsOrCreateDir
+    getHomeDir, expandTilde, copyFileToDir, removeFile, existsOrCreateDir, paramCount
 from std/strutils import parseInt
 from std/terminal import styledWriteLine, ForegroundColor
+from std/parseopt import getOpt, cmdLongOption, cmdShortOption, cmdArgument
 
 const programDir = getHomeDir() & ".config/ctd/"
 const storageFile = getHomeDir() & ".config/ctd/data.txt"
 const dotfilesLocation = getHomeDir() & ".config/ctd/dotfiles/"
 const backupLocation = getHomeDir() & ".config/ctd/backups/"
+
+proc printUsage() =
+  echo """
+
+  Available parameters:
+
+  --add=<path>, -a=<path>      Add given file to file list
+  --list, -l                   List all saved files
+  """
 
 proc addNewFile() =
   ##[ Add a new dotfile/location-combination to the storage file. ]##
@@ -39,14 +49,32 @@ proc addNewFile() =
   #   of "": backupOption = true
   #   else: discard
 
-proc printSavedFiles() =
+proc addNewFile(chosendotfile: string) =
+  ##[ Same as addNewFile but path was given by cmdline ]##
+  var f: File
+
+  if fileExists(storageFile):
+    # If the storage file already exists, append to it.
+    # Otherwise use fmWrite to create it at first.
+    f = open(storageFile, fmAppend)
+  else:
+    f = open(storageFile, fmWrite)
+  defer: f.close()
+
+  try:
+    os.copyFileToDir(expandTilde(chosendotfile), dotfilesLocation)
+    writeLine(f, expandTilde(chosendotfile))
+  except OSError as e:
+    terminal.styledWriteLine(stdout, fgRed, "Could not copy given dotfile: ", e.msg)
+
+proc printSavedFiles(waitForUserInput: bool) =
   ##[ Read the entire storage file at once and print its contents. ]##
   if fileExists(storageFile):
     echo readFile(storageFile)
-    discard readLine(stdin)
+    if waitForUserInput: discard readLine(stdin)
   else:
     echo "No saved files yet!"
-    discard readLine(stdin)
+    if waitForUserInput: discard readLine(stdin)
 
 proc linkAllSavedFiles() =
   ##[ Create Symlinks for all files that have been added before. ]##
@@ -118,7 +146,7 @@ proc main() =
         echo "TODO"
         discard readLine(stdin)
       of 3:
-        printSavedFiles()
+        printSavedFiles(true)
       of 4:
         linkAllSavedFiles()
       of 5:
@@ -126,4 +154,19 @@ proc main() =
       else:
         continue
 
-main()
+if paramCount() > 0:
+  for kind, key, val in getOpt():
+    case kind:
+      of cmdLongOption, cmdShortOption:
+        case key:
+          of "add", "a":
+            addNewFile(val)
+            quit()
+          of "list", "l":
+            printSavedFiles(false)
+            quit()
+          else: printUsage()
+      else: quit()
+else:
+  main()
+
