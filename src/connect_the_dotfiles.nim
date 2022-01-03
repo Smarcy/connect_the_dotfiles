@@ -3,10 +3,11 @@ from std/os import execShellCmd, fileExists, extractFilename, createSymlink,
 from std/strutils import parseInt
 from std/terminal import styledWriteLine, ForegroundColor
 from std/parseopt import getOpt, cmdLongOption, cmdShortOption, cmdArgument
+from system import isMainModule
 
-const programDir = getHomeDir() & ".config/ctd/"
-const storageFile = getHomeDir() & ".config/ctd/data.txt"
-const dotfilesLocation = getHomeDir() & ".config/ctd/dotfiles/"
+const ProgramDir = getHomeDir() & ".config/ctd/"
+const StorageFile = getHomeDir() & ".config/ctd/data.txt"
+const DotfilesLocation = getHomeDir() & ".config/ctd/dotfiles/"
 const backupLocation = getHomeDir() & ".config/ctd/backups/"
 
 proc printUsage() =
@@ -22,16 +23,17 @@ proc printUsage() =
 
 proc addNewFile(chosenDotfile: string) =
   ##[ Add a new dotfile/location-combination to the storage file. ]##
-  var chosenDotfile = chosenDotfile
-  var waitForUserInput: bool
-  var f: File
+  var
+    chosenDotfile = chosenDotfile
+    waitForUserInput: bool
+    f: File
 
-  if fileExists(storageFile):
+  if fileExists(StorageFile):
     # If the storage file already exists, append to it.
     # Otherwise use fmWrite to create it at first.
-    f = open(storageFile, fmAppend)
+    f = open(StorageFile, fmAppend)
   else:
-    f = open(storageFile, fmWrite)
+    f = open(StorageFile, fmWrite)
   defer: f.close()
 
   # chosenDotfile is empty if addNewFile is called from within the binary, without cmdline params
@@ -43,7 +45,7 @@ proc addNewFile(chosenDotfile: string) =
     chosenDotfile = readLine(stdin)
 
   try:
-    os.copyFileToDir(expandTilde(chosenDotfile), dotfilesLocation)
+    os.copyFileToDir(expandTilde(chosenDotfile), DotfilesLocation)
     writeLine(f, expandTilde(chosenDotfile))
   except OSError as e:
     terminal.styledWriteLine(stdout, fgRed, "Could not copy given dotfile: ", e.msg)
@@ -60,8 +62,8 @@ proc addNewFile(chosenDotfile: string) =
 
 proc printSavedFiles(waitForUserInput: bool) =
   ##[ Read the entire storage file at once and print its contents. ]##
-  if fileExists(storageFile):
-    echo readFile(storageFile)
+  if fileExists(StorageFile):
+    echo readFile(StorageFile)
     if waitForUserInput: discard readLine(stdin)
   else:
     echo "No saved files yet!"
@@ -71,11 +73,11 @@ proc linkAllSavedFiles() =
   ##[ Create Symlinks for all files that have been added before. ]##
   var f: File
 
-  if not fileExists(storageFile):
+  if not fileExists(StorageFile):
     echo "No saved files yet!"
     discard readLine(stdin)
   else:
-    f = open(storageFile, fmRead)
+    f = open(StorageFile, fmRead)
     defer: f.close()
 
     for line in lines(f):
@@ -83,13 +85,13 @@ proc linkAllSavedFiles() =
       let fileName = extractFilename(line)
       # let filePath = line[0 .. ^(len(fileName)+1)]
 
-      echo "Trying to create Symlink: " & dotfilesLocation & fileName &
+      echo "Trying to create Symlink: " & DotfilesLocation & fileName &
           " to: " & line
 
       try:
-        createSymlink(dotfilesLocation & fileName, line)
+        createSymlink(DotfilesLocation & fileName, line)
         terminal.styledWriteLine(stdout, fgGreen, "Created Symlink: " &
-            dotfilesLocation & fileName & " to: " & line)
+            DotfilesLocation & fileName & " to: " & line)
       except OSError as e:
         terminal.styledWriteLine(stdout, fgRed, "Error: ", e.msg)
         terminal.styledWriteLine(stdout, fgYellow, "Shall the existing file be overwritten? [y/N]")
@@ -97,9 +99,9 @@ proc linkAllSavedFiles() =
         case readLine(stdin):
           of "y":
             removeFile(line)
-            createSymlink(dotfilesLocation & fileName, line)
+            createSymlink(DotfilesLocation & fileName, line)
             terminal.styledWriteLine(stdout, fgGreen, "Created Symlink: " &
-                dotfilesLocation & fileName & " to: " & line)
+                DotfilesLocation & fileName & " to: " & line)
             discard readLine(stdin)
           else:
             discard
@@ -115,8 +117,8 @@ proc main() =
   ##[ Entry Point and main loop. ]##
 
   # Create mandatory dirs on first start
-  discard existsOrCreateDir(programDir)
-  discard existsOrCreateDir(dotfilesLocation)
+  discard existsOrCreateDir(ProgramDir)
+  discard existsOrCreateDir(DotfilesLocation)
   discard existsOrCreateDir(backupLocation)
 
   while true:
@@ -163,5 +165,5 @@ if paramCount() > 0:
           else: printUsage()
       else: quit()
 else:
-  main()
-
+  when isMainModule:
+    main()

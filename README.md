@@ -1,5 +1,9 @@
 # Connect The Dotfiles (CTD)
 
+<div align="center">
+<img src="https://github.com/Smarcy/connect_the_dotfiles/blob/master/assets/introMenu.png">
+</div>
+
 - [Connect The Dotfiles (CTD)](#connect-the-dotfiles--ctd-)
   * [Disclaimer](#disclaimer)
   * [Installation](#installation)
@@ -8,10 +12,6 @@
   * [OS Support](#os-support)
   * [Future Ideas](#future-ideas)
   * [TODO](#todo)
-
-<div align="center">
-<img src="https://github.com/Smarcy/connect_the_dotfiles/blob/master/assets/introMenu.png">
-</div>
 
 ## Disclaimer
 
@@ -76,5 +76,6 @@ funny journey will lead to.
 * [ ] Revert all links and replace them with the actual files
 * [ ] Option to backup added origin files
 * [ ] Option to refresh backup files to current state
+* [ ] Testing, Testing, Testing!
 
 To be continued
