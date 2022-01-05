@@ -27,18 +27,12 @@ Thus, **think** before you type. Even better: study the source code.
 
 ## Installation
 
-Either
-
-* Use the binary in `bin/`
-  * You may just start the binary
-  * Or pass parameters to it (--help for usage guide)
-
-
-or
-
 * Install Nim (I recommend [choosenim](https://github.com/dom96/choosenim))
 * Clone this repository
 * Run `nimble m` in the `connect_the_dotfiles/` directory
+* This will create a binary in the `bin/` folder
+  * You can also run `nimble b` to create the binary without immediately running it
+* Start the binary or pass parameters to it (`--help` for usage guide)
 
 ## Functionality
 

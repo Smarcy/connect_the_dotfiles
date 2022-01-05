@@ -1,25 +1,39 @@
 from std/os import execShellCmd, fileExists, extractFilename, createSymlink,
-    getHomeDir, expandTilde, copyFileToDir, removeFile, existsOrCreateDir, paramCount
-from std/strutils import parseInt
+    getHomeDir, expandTilde, copyFileToDir, removeFile, existsOrCreateDir,
+    paramCount, moveFile
+from std/strutils import parseInt, split, find
 from std/terminal import styledWriteLine, ForegroundColor
 from std/parseopt import getOpt, cmdLongOption, cmdShortOption, cmdArgument
-from system import isMainModule
 
 const ProgramDir = getHomeDir() & ".config/ctd/"
 const StorageFile = getHomeDir() & ".config/ctd/data.txt"
 const DotfilesLocation = getHomeDir() & ".config/ctd/dotfiles/"
-const backupLocation = getHomeDir() & ".config/ctd/backups/"
+const BackupLocation = getHomeDir() & ".config/ctd/backups/"
 
-proc printUsage() =
-  ##[ Obvious. ]##
-  echo """
+const usageMsg = """
 
   Available parameters:
 
   --add=<path>, -a=<path>      Add given file to file list
   --list, -l                   List all saved files
   --help, -h                   Print usage guide (this)
-  """
+"""
+
+const menuText = """
+Welcome to connect_the_dotfiles, your place to organize your dotties!
+Please choose an option:
+
+[1]: Add new dotfile
+[2]: Remove existing dotfile
+[3]: List saved dotfiles
+[4]: Link all saved dotfiles
+[5]: Quit
+
+"""
+
+proc printUsage() =
+  ##[ Obvious. ]##
+  echo usageMsg
 
 proc addNewFile(chosenDotfile: string) =
   ##[ Add a new dotfile/location-combination to the storage file. ]##
@@ -68,6 +82,35 @@ proc printSavedFiles(waitForUserInput: bool) =
   else:
     echo "No saved files yet!"
     if waitForUserInput: discard readLine(stdin)
+
+proc removeFileFromList() =
+  ##[ Remove file from StorageFile ]##
+
+  var f: File
+  var tmpF = open("temp.txt", fmWrite)
+
+  if not fileExists(StorageFile):
+    echo "No saved files yet!"
+    discard readLine(stdin)
+  else:
+    printSavedFiles(false)
+    f = open(StorageFile, fmRead)
+  defer: f.close()
+
+  echo "Please type the filename you wish to remove (only the filename including dot!)"
+  let fileToRemove = readLine(stdin)
+
+
+  for line in lines(f):
+    echo line
+    if fileToRemove == extractFilename(line):
+      removeFile(getHomeDir() & extractFilename(line))
+      continue
+    else:
+      writeLine(tmpF, line)
+
+  moveFile("temp.txt", StorageFile)
+  discard readLine(stdin)
 
 proc linkAllSavedFiles() =
   ##[ Create Symlinks for all files that have been added before. ]##
@@ -119,28 +162,19 @@ proc main() =
   # Create mandatory dirs on first start
   discard existsOrCreateDir(ProgramDir)
   discard existsOrCreateDir(DotfilesLocation)
-  discard existsOrCreateDir(backupLocation)
+  discard existsOrCreateDir(BackupLocation)
 
   while true:
     discard os.execShellCmd("clear")
-    echo """
-Welcome to connect_the_dotfiles, your place to organize your dotties!
-Please choose an option:
 
-[1]: Add new dotfile
-[2]: Remove existing dotfile
-[3]: List saved dotfiles
-[4]: Link all saved dotfiles
-[5]: Quit
-
-    """
+    echo menuText
 
     stdout.write("> ") # Not echo cause of newline
     case parseInt(readLine(stdin)): # Error prone: If NaN -> Error //FIXME
       of 1:
         addNewFile("")
       of 2:
-        echo "TODO"
+        removeFileFromList()
         discard readLine(stdin)
       of 3:
         printSavedFiles(true)
@@ -151,19 +185,17 @@ Please choose an option:
       else:
         continue
 
-if paramCount() > 0:
-  for kind, key, val in getOpt():
-    case kind:
-      of cmdLongOption, cmdShortOption:
-        case key:
-          of "add", "a":
-            addNewFile(val)
-            quit()
-          of "list", "l":
-            printSavedFiles(false)
-            quit()
-          else: printUsage()
-      else: quit()
-else:
-  when isMainModule:
+when isMainModule:
+  if paramCount() > 0:
+    for kind, key, val in getOpt():
+      case kind:
+        of cmdLongOption, cmdShortOption:
+          case key:
+            of "add", "a":
+              addNewFile(val)
+            of "list", "l":
+              printSavedFiles(false)
+            else: printUsage()
+        else: discard
+  else:
     main()
