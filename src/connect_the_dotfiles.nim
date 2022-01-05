@@ -102,9 +102,7 @@ proc removeFileFromList() =
 
 
   for line in lines(f):
-    echo line
     if fileToRemove == extractFilename(line):
-      removeFile(getHomeDir() & extractFilename(line))
       continue
     else:
       writeLine(tmpF, line)
