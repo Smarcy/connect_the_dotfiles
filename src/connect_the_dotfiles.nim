@@ -1,9 +1,10 @@
 from std/os import execShellCmd, fileExists, extractFilename, createSymlink,
     getHomeDir, expandTilde, copyFileToDir, removeFile, existsOrCreateDir,
-    paramCount, moveFile
+    paramCount, moveFile, expandSymlink, symlinkExists
 from std/strutils import parseInt, split, find
 from std/terminal import styledWriteLine, ForegroundColor
 from std/parseopt import getOpt, cmdLongOption, cmdShortOption, cmdArgument
+import std/hashes
 
 const ProgramDir = getHomeDir() & ".config/ctd/"
 const StorageFile = getHomeDir() & ".config/ctd/data.txt"
@@ -77,11 +78,25 @@ proc addNewFile(chosenDotfile: string) =
 proc printSavedFiles(waitForUserInput: bool) =
   ##[ Read the entire storage file at once and print its contents. ]##
   if fileExists(StorageFile):
-    echo readFile(StorageFile)
-    if waitForUserInput: discard readLine(stdin)
-  else:
-    echo "No saved files yet!"
-    if waitForUserInput: discard readLine(stdin)
+
+    let f = StorageFile
+
+    for line in f.lines:
+      if symlinkExists(line):
+        let filesLinkedToHash = hash(expandSymlink(line))
+        let dotfileHash = hash(DotfilesLocation & extractFilename(line))
+
+        if filesLinkedToHash == dotfileHash:
+          echo line & " [linked]"
+        else:
+          echo line
+      else:
+        echo line
+
+    if waitForUserInput:
+      discard readLine(stdin)
+    else:
+      echo "No saved files yet!"
 
 proc removeFileFromList() =
   ##[ Remove file from StorageFile ]##
@@ -100,7 +115,6 @@ proc removeFileFromList() =
 
   echo "Please type the filename you wish to remove (only the filename including dot!)"
   let fileToRemove = readLine(stdin)
-
 
   # Look in StorageFile for the given name
   # If found, skip that line in the temp file

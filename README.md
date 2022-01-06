@@ -70,7 +70,7 @@ funny journey will lead to.
 * [ ] Revert all links and replace them with the actual files
 * [ ] Option to backup added origin files
 * [ ] Option to refresh backup files to current state
-* [ ] When listing all saved files, indicate already linked ones
+* [X] When listing all saved files, indicate already linked ones
 * [ ] Testing, Testing, Testing!
 
 
