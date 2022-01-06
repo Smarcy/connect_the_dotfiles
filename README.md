@@ -63,13 +63,15 @@ funny journey will lead to.
 
 ## TODO
 
-* [ ] Remove existing files
+* [X] Remove existing files
 * [ ] Link only selected files
 * [ ] Link only unlinked files
 * [ ] Make `CTD` usable by passing parameters to the binary
 * [ ] Revert all links and replace them with the actual files
 * [ ] Option to backup added origin files
 * [ ] Option to refresh backup files to current state
+* [ ] When listing all saved files, indicate already linked ones
 * [ ] Testing, Testing, Testing!
+
 
 To be continued

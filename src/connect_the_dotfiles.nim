@@ -96,19 +96,24 @@ proc removeFileFromList() =
     printSavedFiles(false)
     f = open(StorageFile, fmRead)
   defer: f.close()
+  defer: tmpF.close()
 
   echo "Please type the filename you wish to remove (only the filename including dot!)"
   let fileToRemove = readLine(stdin)
 
 
+  # Look in StorageFile for the given name
+  # If found, skip that line in the temp file
   for line in lines(f):
-    if fileToRemove == extractFilename(line):
+    let fileName = extractFilename(line)
+    if fileToRemove == fileName:
+      moveFile(DotfilesLocation & fileName, line)
       continue
     else:
       writeLine(tmpF, line)
 
+  # Replace StorageFile without the single deleted line
   moveFile("temp.txt", StorageFile)
-  discard readLine(stdin)
 
 proc linkAllSavedFiles() =
   ##[ Create Symlinks for all files that have been added before. ]##
