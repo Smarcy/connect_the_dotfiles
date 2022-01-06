@@ -4,7 +4,7 @@ from std/os import execShellCmd, fileExists, extractFilename, createSymlink,
 from std/strutils import parseInt, split, find
 from std/terminal import styledWriteLine, ForegroundColor
 from std/parseopt import getOpt, cmdLongOption, cmdShortOption, cmdArgument
-import std/hashes
+from std/hashes import hash
 
 const ProgramDir = getHomeDir() & ".config/ctd/"
 const StorageFile = getHomeDir() & ".config/ctd/data.txt"
@@ -75,6 +75,20 @@ proc addNewFile(chosenDotfile: string) =
   #   of "": backupOption = true
   #   else: discard
 
+proc isLinked(s: string): bool =
+
+  let f = StorageFile
+  for line in f.lines:
+
+    let
+      filesLinkedToHash = hash(expandSymlink(line))
+      dotfileHash = hash(DotfilesLocation & extractFilename(line))
+
+    if filesLinkedToHash == dotfileHash: return true
+
+  return false
+
+
 proc printSavedFiles(waitForUserInput: bool) =
   ##[ Read the entire storage file at once and print its contents. ]##
   if fileExists(StorageFile):
@@ -83,10 +97,7 @@ proc printSavedFiles(waitForUserInput: bool) =
 
     for line in f.lines:
       if symlinkExists(line):
-        let filesLinkedToHash = hash(expandSymlink(line))
-        let dotfileHash = hash(DotfilesLocation & extractFilename(line))
-
-        if filesLinkedToHash == dotfileHash:
+        if line.isLinked():
           echo line & " [linked]"
         else:
           echo line
@@ -95,14 +106,14 @@ proc printSavedFiles(waitForUserInput: bool) =
 
     if waitForUserInput:
       discard readLine(stdin)
-    else:
-      echo "No saved files yet!"
+  else:
+    echo "No saved files yet!"
 
 proc removeFileFromList() =
   ##[ Remove file from StorageFile ]##
-
-  var f: File
-  var tmpF = open("temp.txt", fmWrite)
+  var
+    f: File
+    tmpFile = open("temp.txt", fmWrite)
 
   if not fileExists(StorageFile):
     echo "No saved files yet!"
@@ -111,20 +122,20 @@ proc removeFileFromList() =
     printSavedFiles(false)
     f = open(StorageFile, fmRead)
   defer: f.close()
-  defer: tmpF.close()
+  defer: tmpFile.close()
 
   echo "Please type the filename you wish to remove (only the filename including dot!)"
   let fileToRemove = readLine(stdin)
 
   # Look in StorageFile for the given name
-  # If found, skip that line in the temp file
+  # If found, skip that line in the temp file and move file back to its origin dir
   for line in lines(f):
     let fileName = extractFilename(line)
     if fileToRemove == fileName:
       moveFile(DotfilesLocation & fileName, line)
       continue
     else:
-      writeLine(tmpF, line)
+      writeLine(tmpFile, line)
 
   # Replace StorageFile without the single deleted line
   moveFile("temp.txt", StorageFile)
