@@ -30,7 +30,7 @@ Thus, **think** before you type. Even better: study the source code.
 * Install Nim (I recommend [choosenim](https://github.com/dom96/choosenim))
 * Clone this repository
 * Run `nimble m` in the `connect_the_dotfiles/` directory
-* This will create a binary in the `bin/` folder
+* This will create and run a binary in the `bin/` directory
   * You can also run `nimble b` to create the binary without immediately running it
 * Start the binary or pass parameters to it (`--help` for usage guide)
 
@@ -46,7 +46,7 @@ Relevant files & directories:
 
 * `~/.config/ctd/`
 * `~/.config/ctd/data.txt`
-* `~/.config/ctd/dotfiles/`
+* `~/.config/ctd/dotfiles/` (You want this to be a Git Repo)
 * `~/.config/ctd/backups/`
 
 
@@ -67,7 +67,7 @@ funny journey will lead to.
 * [X] Link only selected files
 * [ ] Link only unlinked files
 * [X] Make `CTD` usable by passing parameters to the binary (linking missing)
-* [ ] Revert all links and replace them with the actual files
+* [X] Revert all links and replace them with the actual files
 * [ ] Option to backup added origin files
 * [ ] Option to refresh backup files to current state
 * [X] When listing all saved files, indicate already linked ones

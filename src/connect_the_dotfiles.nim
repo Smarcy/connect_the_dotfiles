@@ -2,7 +2,7 @@ from std/os import execShellCmd, fileExists, extractFilename, createSymlink,
     getHomeDir, expandTilde, copyFileToDir, removeFile, existsOrCreateDir,
     paramCount, moveFile, expandSymlink, symlinkExists
 from std/terminal import styledWriteLine, ForegroundColor
-from std/parseopt import getOpt, cmdLongOption, cmdShortOption, cmdArgument
+from std/parseopt import getOpt, cmdLongOption, cmdShortOption
 from std/hashes import hash
 
 const ProgramDir = os.getHomeDir() & ".config/ctd/"
@@ -29,6 +29,7 @@ Please choose an option:
 [3]: List saved dotfiles
 [4]: Link all saved dotfiles
 [5]: Link all unlinked dotfiles
+[6]: Replace all links with the origin files
 [q]: Quit
 
 """
@@ -137,7 +138,7 @@ proc removeFileFromList(chosenDotfile: string) =
 
   # Look in StorageFile for the given name
   # If found, skip that line in the temp file and move file back to its origin dir
-  for line in lines(f):
+  for line in f.lines:
     let fileName = os.extractFilename(line)
     if fileToRemove == fileName:
       os.moveFile(DotfilesLocation & fileName, line)
@@ -159,10 +160,9 @@ proc linkAllSavedFiles() =
     f = open(StorageFile, fmRead)
     defer: f.close()
 
-    for line in lines(f):
+    for line in f.lines:
       discard os.execShellCmd("clear")
       let fileName = os.extractFilename(line)
-      # let filePath = line[0 .. ^(len(fileName)+1)]
 
       echo "Trying to create Symlink: " & DotfilesLocation & fileName &
           " to: " & line
@@ -195,6 +195,23 @@ proc linkAllSavedFiles() =
 proc linkAllUnlinkedFiles() =
   return
 
+proc revertAllLinks() =
+  var f: File
+
+  if fileExists(StorageFile):
+    f = open(StorageFile, fmRead)
+  else:
+    echo "There is no storage file."
+  defer: f.close()
+
+  for line in f.lines:
+    let storedDotfile = DotfilesLocation & extractFilename(line)
+    let pathWithoutFilename = line[0 .. ^(len(extractFilename(line))+1)]
+
+    if fileExists(storedDotfile) and symlinkExists(line):
+      removeFile(line)
+      copyFileToDir(storedDotfile, pathWithoutFilename)
+
 proc main() =
   ##[ Entry Point and main loop. ]##
 
@@ -209,7 +226,7 @@ proc main() =
     echo menuText
 
     stdout.write("> ") # Not echo cause of newline
-    case readLine(stdin): # Error prone: If NaN -> Error //FIXME
+    case readLine(stdin):
       of "1":
         addNewFile("")
       of "2":
@@ -221,6 +238,8 @@ proc main() =
         linkAllSavedFiles()
       of "5":
         linkAllUnlinkedFiles()
+      of "6":
+        revertAllLinks()
       of "q":
         break
       else:
