@@ -64,7 +64,7 @@ funny journey will lead to.
 ## TODO
 
 * [X] Remove existing files
-* [ ] Link only selected files
+* [X] Link only selected files
 * [ ] Link only unlinked files
 * [X] Make `CTD` usable by passing parameters to the binary (linking missing)
 * [ ] Revert all links and replace them with the actual files

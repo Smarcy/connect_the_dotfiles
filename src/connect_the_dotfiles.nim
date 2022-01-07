@@ -1,7 +1,6 @@
 from std/os import execShellCmd, fileExists, extractFilename, createSymlink,
     getHomeDir, expandTilde, copyFileToDir, removeFile, existsOrCreateDir,
     paramCount, moveFile, expandSymlink, symlinkExists
-from std/strutils import parseInt, split, find
 from std/terminal import styledWriteLine, ForegroundColor
 from std/parseopt import getOpt, cmdLongOption, cmdShortOption, cmdArgument
 from std/hashes import hash
@@ -29,7 +28,8 @@ Please choose an option:
 [2]: Remove existing dotfile
 [3]: List saved dotfiles
 [4]: Link all saved dotfiles
-[5]: Quit
+[5]: Link all unlinked dotfiles
+[q]: Quit
 
 """
 
@@ -192,6 +192,9 @@ proc linkAllSavedFiles() =
   #   else:
   #     discard os.execShellCmd("ln -s ./dotfiles/" & file
 
+proc linkAllUnlinkedFiles() =
+  return
+
 proc main() =
   ##[ Entry Point and main loop. ]##
 
@@ -206,17 +209,19 @@ proc main() =
     echo menuText
 
     stdout.write("> ") # Not echo cause of newline
-    case parseInt(readLine(stdin)): # Error prone: If NaN -> Error //FIXME
-      of 1:
+    case readLine(stdin): # Error prone: If NaN -> Error //FIXME
+      of "1":
         addNewFile("")
-      of 2:
+      of "2":
         removeFileFromList("")
         discard readLine(stdin)
-      of 3:
+      of "3":
         printSavedFiles(true)
-      of 4:
+      of "4":
         linkAllSavedFiles()
-      of 5:
+      of "5":
+        linkAllUnlinkedFiles()
+      of "q":
         break
       else:
         continue
