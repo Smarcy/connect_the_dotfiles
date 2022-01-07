@@ -6,10 +6,10 @@ from std/terminal import styledWriteLine, ForegroundColor
 from std/parseopt import getOpt, cmdLongOption, cmdShortOption, cmdArgument
 from std/hashes import hash
 
-const ProgramDir = getHomeDir() & ".config/ctd/"
-const StorageFile = getHomeDir() & ".config/ctd/data.txt"
-const DotfilesLocation = getHomeDir() & ".config/ctd/dotfiles/"
-const BackupLocation = getHomeDir() & ".config/ctd/backups/"
+const ProgramDir = os.getHomeDir() & ".config/ctd/"
+const StorageFile = os.getHomeDir() & ".config/ctd/data.txt"
+const DotfilesLocation = os.getHomeDir() & ".config/ctd/dotfiles/"
+const BackupLocation = os.getHomeDir() & ".config/ctd/backups/"
 
 const usageMsg = """
 
@@ -44,7 +44,7 @@ proc addNewFile(chosenDotfile: string) =
     waitForUserInput: bool
     f: File
 
-  if fileExists(StorageFile):
+  if os.fileExists(StorageFile):
     # If the storage file already exists, append to it.
     # Otherwise use fmWrite to create it at first.
     f = open(StorageFile, fmAppend)
@@ -61,8 +61,8 @@ proc addNewFile(chosenDotfile: string) =
     chosenDotfile = readLine(stdin)
 
   try:
-    os.copyFileToDir(expandTilde(chosenDotfile), DotfilesLocation)
-    writeLine(f, expandTilde(chosenDotfile))
+    os.copyFileToDir(os.expandTilde(chosenDotfile), DotfilesLocation)
+    writeLine(f, os.expandTilde(chosenDotfile))
   except OSError as e:
     terminal.styledWriteLine(stdout, fgRed, "Could not copy given dotfile: ", e.msg)
 
@@ -82,8 +82,8 @@ proc isLinked(s: string): bool =
   for line in f.lines:
 
     let
-      filesLinkedToHash = hash(expandSymlink(line))
-      dotfileHash = hash(DotfilesLocation & extractFilename(line))
+      filesLinkedToHash = hash(os.expandSymlink(line))
+      dotfileHash = hash(DotfilesLocation & os.extractFilename(line))
 
     if filesLinkedToHash == dotfileHash: return true
 
@@ -91,12 +91,12 @@ proc isLinked(s: string): bool =
 
 proc printSavedFiles(waitForUserInput: bool) =
   ##[ Read the entire storage file at once and print its contents. ]##
-  if fileExists(StorageFile):
+  if os.fileExists(StorageFile):
 
     let f = StorageFile
 
     for line in f.lines:
-      if symlinkExists(line):
+      if os.symlinkExists(line):
         if line.isLinked():
           echo line & " [linked]"
         else:
@@ -115,7 +115,7 @@ proc removeFileFromList(chosenDotfile: string) =
     f: File
     tmpFile = open("temp.txt", fmWrite)
 
-  if not fileExists(StorageFile):
+  if not os.fileExists(StorageFile):
     echo "No saved files yet!"
     discard readLine(stdin)
   else:
@@ -138,21 +138,21 @@ proc removeFileFromList(chosenDotfile: string) =
   # Look in StorageFile for the given name
   # If found, skip that line in the temp file and move file back to its origin dir
   for line in lines(f):
-    let fileName = extractFilename(line)
+    let fileName = os.extractFilename(line)
     if fileToRemove == fileName:
-      moveFile(DotfilesLocation & fileName, line)
+      os.moveFile(DotfilesLocation & fileName, line)
       continue
     else:
       writeLine(tmpFile, line)
 
   # Replace StorageFile without the single deleted line
-  moveFile("temp.txt", StorageFile)
+  os.moveFile("temp.txt", StorageFile)
 
 proc linkAllSavedFiles() =
   ##[ Create Symlinks for all files that have been added before. ]##
   var f: File
 
-  if not fileExists(StorageFile):
+  if not os.fileExists(StorageFile):
     echo "No saved files yet!"
     discard readLine(stdin)
   else:
@@ -161,14 +161,14 @@ proc linkAllSavedFiles() =
 
     for line in lines(f):
       discard os.execShellCmd("clear")
-      let fileName = extractFilename(line)
+      let fileName = os.extractFilename(line)
       # let filePath = line[0 .. ^(len(fileName)+1)]
 
       echo "Trying to create Symlink: " & DotfilesLocation & fileName &
           " to: " & line
 
       try:
-        createSymlink(DotfilesLocation & fileName, line)
+        os.createSymlink(DotfilesLocation & fileName, line)
         terminal.styledWriteLine(stdout, fgGreen, "Created Symlink: " &
             DotfilesLocation & fileName & " to: " & line)
       except OSError as e:
@@ -177,8 +177,8 @@ proc linkAllSavedFiles() =
 
         case readLine(stdin):
           of "y":
-            removeFile(line)
-            createSymlink(DotfilesLocation & fileName, line)
+            os.removeFile(line)
+            os.createSymlink(DotfilesLocation & fileName, line)
             terminal.styledWriteLine(stdout, fgGreen, "Created Symlink: " &
                 DotfilesLocation & fileName & " to: " & line)
             discard readLine(stdin)
@@ -196,9 +196,9 @@ proc main() =
   ##[ Entry Point and main loop. ]##
 
   # Create mandatory dirs on first start
-  discard existsOrCreateDir(ProgramDir)
-  discard existsOrCreateDir(DotfilesLocation)
-  discard existsOrCreateDir(BackupLocation)
+  discard os.existsOrCreateDir(ProgramDir)
+  discard os.existsOrCreateDir(DotfilesLocation)
+  discard os.existsOrCreateDir(BackupLocation)
 
   while true:
     discard os.execShellCmd("clear")
@@ -222,7 +222,7 @@ proc main() =
         continue
 
 when isMainModule:
-  if paramCount() > 0:
+  if os.paramCount() > 0:
     for kind, key, val in getOpt():
       case kind:
         of cmdLongOption, cmdShortOption:
