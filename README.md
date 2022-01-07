@@ -66,7 +66,7 @@ funny journey will lead to.
 * [X] Remove existing files
 * [ ] Link only selected files
 * [ ] Link only unlinked files
-* [ ] Make `CTD` usable by passing parameters to the binary
+* [X] Make `CTD` usable by passing parameters to the binary (linking missing)
 * [ ] Revert all links and replace them with the actual files
 * [ ] Option to backup added origin files
 * [ ] Option to refresh backup files to current state

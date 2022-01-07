@@ -15,7 +15,8 @@ const usageMsg = """
 
   Available parameters:
 
-  --add=<path>, -a=<path>      Add given file to file list
+  --add=<path>, -a=<path>      Add given file to storage
+  --remove=<.file> -r=<.file>  Remove a file from storage (insert only dot+filename!)
   --list, -l                   List all saved files
   --help, -h                   Print usage guide (this)
 """
@@ -88,7 +89,6 @@ proc isLinked(s: string): bool =
 
   return false
 
-
 proc printSavedFiles(waitForUserInput: bool) =
   ##[ Read the entire storage file at once and print its contents. ]##
   if fileExists(StorageFile):
@@ -109,7 +109,7 @@ proc printSavedFiles(waitForUserInput: bool) =
   else:
     echo "No saved files yet!"
 
-proc removeFileFromList() =
+proc removeFileFromList(chosenDotfile: string) =
   ##[ Remove file from StorageFile ]##
   var
     f: File
@@ -119,13 +119,21 @@ proc removeFileFromList() =
     echo "No saved files yet!"
     discard readLine(stdin)
   else:
-    printSavedFiles(false)
+    if chosenDotfile == "":
+      printSavedFiles(false)
     f = open(StorageFile, fmRead)
   defer: f.close()
   defer: tmpFile.close()
 
-  echo "Please type the filename you wish to remove (only the filename including dot!)"
-  let fileToRemove = readLine(stdin)
+  var fileToRemove: string
+
+  # chosenDotfile is empty if this proc is called from inside the binary
+  # chosenDotfile is not empty if this proc is called from the cli
+  if chosenDotfile == "":
+    echo "Please type the filename you wish to remove (only the filename including dot!)"
+    fileToRemove = readLine(stdin)
+  else:
+    fileToRemove = chosenDotfile
 
   # Look in StorageFile for the given name
   # If found, skip that line in the temp file and move file back to its origin dir
@@ -202,7 +210,7 @@ proc main() =
       of 1:
         addNewFile("")
       of 2:
-        removeFileFromList()
+        removeFileFromList("")
         discard readLine(stdin)
       of 3:
         printSavedFiles(true)
@@ -223,6 +231,8 @@ when isMainModule:
               addNewFile(val)
             of "list", "l":
               printSavedFiles(false)
+            of "remove", "r":
+              removeFileFromList(val)
             else: printUsage()
         else: discard
   else:
