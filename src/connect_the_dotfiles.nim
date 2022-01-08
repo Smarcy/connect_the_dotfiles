@@ -45,29 +45,34 @@ proc addNewFile(chosenDotfile: string) =
     waitForUserInput: bool
     f: File
 
-  if os.fileExists(StorageFile):
-    # If the storage file already exists, append to it.
-    # Otherwise use fmWrite to create it at first.
-    f = open(StorageFile, fmAppend)
-  else:
-    f = open(StorageFile, fmWrite)
-  defer: f.close()
-
   # chosenDotfile is empty if addNewFile is called from within the binary, without cmdline params
   if chosenDotfile == "":
     discard os.execShellCmd("clear")
     echo "Type the full path to the dotfile, including its name"
 
     waitForUserInput = true
-    chosenDotfile = readLine(stdin)
+    chosenDotfile = expandTilde(readLine(stdin))
 
-  try:
-    os.copyFileToDir(os.expandTilde(chosenDotfile), DotfilesLocation)
-    writeLine(f, os.expandTilde(chosenDotfile))
-  except OSError as e:
-    terminal.styledWriteLine(stdout, fgRed, "Could not copy given dotfile: ", e.msg)
+    f = open(StorageFile)
 
-    if waitForUserInput: discard readLine(stdin)
+    for line in lines(f):
+      var l = expandTilde(line)
+      if chosenDotfile == l:
+        terminal.styledWriteLine(stdout, fgRed, "You already added that file.")
+      else:
+        f.close()
+        f = open(StorageFile, fmAppend)
+        defer: f.close()
+
+      if f.isNil and fileExists(l):
+        try:
+          os.copyFileToDir(os.expandTilde(chosenDotfile), DotfilesLocation)
+          writeLine(f, os.expandTilde(chosenDotfile))
+        except OSError as e:
+          terminal.styledWriteLine(stdout, fgRed,
+              "Could not copy given dotfile: ", e.msg)
+
+  if waitForUserInput: discard readLine(stdin)
 
   # var backupOption = false
   # echo "Should a backup be created before linking the file? [Y/n]"
