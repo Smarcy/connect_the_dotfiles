@@ -38,6 +38,7 @@ proc printUsage() =
   ##[ Obvious. ]##
   echo usageMsg
 
+
 proc addNewFile(chosenDotfile: string) =
   ##[ Add a new dotfile/location-combination to the storage file. ]##
   var
@@ -53,34 +54,42 @@ proc addNewFile(chosenDotfile: string) =
     waitForUserInput = true
     chosenDotfile = expandTilde(readLine(stdin))
 
-    f = open(StorageFile)
+    f = open(StorageFile, fmRead)
 
-    for line in lines(f):
-      var l = expandTilde(line)
-      if chosenDotfile == l:
+    var writeEntry = true
+
+    for line in f.lines:
+      var line = os.expandTilde(line)
+      if chosenDotfile == line:
         terminal.styledWriteLine(stdout, fgRed, "You already added that file.")
-      else:
-        f.close()
-        f = open(StorageFile, fmAppend)
-        defer: f.close()
+        writeEntry = false
 
-      if f.isNil and fileExists(l):
-        try:
-          os.copyFileToDir(os.expandTilde(chosenDotfile), DotfilesLocation)
-          writeLine(f, os.expandTilde(chosenDotfile))
-        except OSError as e:
-          terminal.styledWriteLine(stdout, fgRed,
-              "Could not copy given dotfile: ", e.msg)
+
+    f = open(StorageFile, fmAppend)
+    defer: f.close()
+
+    if os.fileExists(chosenDotfile) and writeEntry:
+      try:
+        os.copyFileToDir(os.expandTilde(chosenDotfile), DotfilesLocation)
+        io.writeLine(f, os.expandTilde(chosenDotfile))
+
+        terminal.styledWriteLine(stdout, fgYellow,
+            "Do you want to create a backup of the origin file? [Y/n]")
+
+        case readLine(stdin)
+        of "n":
+          discard
+        of "y", "Y":
+          os.copyFileToDir(chosenDotfile, BackupLocation)
+        else:
+          discard
+
+
+      except OSError as e:
+        terminal.styledWriteLine(stdout, fgRed,
+            "Could not copy given dotfile: ", e.msg)
 
   if waitForUserInput: discard readLine(stdin)
-
-  # var backupOption = false
-  # echo "Should a backup be created before linking the file? [Y/n]"
-  # case readLine(stdin):
-  #   of "y": backupOption = true
-  #   of "n": backupOption = false
-  #   of "": backupOption = true
-  #   else: discard
 
 proc isLinked(s: string): bool =
 
@@ -149,7 +158,7 @@ proc removeFileFromList(chosenDotfile: string) =
       os.moveFile(DotfilesLocation & fileName, line)
       continue
     else:
-      writeLine(tmpFile, line)
+      io.writeLine(tmpFile, line)
 
   # Replace StorageFile without the single deleted line
   os.moveFile("temp.txt", StorageFile)
