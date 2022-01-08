@@ -104,25 +104,38 @@ proc isLinked(s: string): bool =
 
   return false
 
+proc isBackedUp(s: string): string =
+
+  let f = open(BackupLocation, fmRead)
+
+  for line in f.lines:
+    if line == extractFilename(s):
+      result = result & " [backup]"
+    else:
+      result = ""
+
+
+
 proc printSavedFiles(waitForUserInput: bool) =
   ##[ Read the entire storage file at once and print its contents. ]##
+  var res: string
   if os.fileExists(StorageFile):
 
     let f = StorageFile
 
     for line in f.lines:
+      res = line
       if os.symlinkExists(line):
         if line.isLinked():
-          echo line & " [linked]"
-        else:
-          echo line
-      else:
-        echo line
-
-    if waitForUserInput:
-      discard readLine(stdin)
+          res = line & " [linked]"
+        res = res & isBackedUp(line)
   else:
     echo "No saved files yet!"
+
+  echo res
+
+  if waitForUserInput:
+    discard readLine(stdin)
 
 proc removeFileFromList(chosenDotfile: string) =
   ##[ Remove file from StorageFile ]##
