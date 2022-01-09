@@ -59,5 +59,5 @@ port to Windows anytime, yet.
 
 ## Future Ideas
 
-- Let User choose alls relevant directory locations
+- Let user choose all relevant directory locations
 - Let user choose location and name of Storagefile
