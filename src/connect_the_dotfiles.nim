@@ -93,7 +93,7 @@ proc addNewFile(chosenDotfile: string) =
 
 proc isLinked(s: string): bool =
 
-  let f = StorageFile
+  let f = open(StorageFile, fmRead)
   for line in f.lines:
 
     let
@@ -104,16 +104,12 @@ proc isLinked(s: string): bool =
 
   return false
 
-proc isBackedUp(s: string): string =
+proc isBackedUp(line: string): bool =
 
-  let f = open(BackupLocation, fmRead)
-
-  for line in f.lines:
-    if line == extractFilename(s):
-      result = result & " [backup]"
-    else:
-      result = ""
-
+  if fileExists(BackupLocation & extractFilename(line)):
+    result = true
+  else:
+    result = false
 
 
 proc printSavedFiles(waitForUserInput: bool) =
@@ -121,14 +117,16 @@ proc printSavedFiles(waitForUserInput: bool) =
   var res: string
   if os.fileExists(StorageFile):
 
-    let f = StorageFile
+    let f = open(StorageFile, fmRead)
+
 
     for line in f.lines:
       res = line
       if os.symlinkExists(line):
         if line.isLinked():
           res = line & " [linked]"
-        res = res & isBackedUp(line)
+      if line.isBackedUp():
+        res = res & " [backup]"
   else:
     echo "No saved files yet!"
 
