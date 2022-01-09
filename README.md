@@ -77,8 +77,3 @@ funny journey will lead to.
 To be continued
 
 ## Known Bugs
-
-* If you have a dangling symlink pointing to ctd dotfiles/ dir, you can not
-  add that file via ctd. In this case use `cp --remove-destination source target`
-  and copy your origin file where it belongs. After that, you should be able
-  to add it.
