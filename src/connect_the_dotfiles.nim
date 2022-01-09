@@ -67,6 +67,8 @@ proc addNewFile(chosenDotfile: string) =
       var line = os.expandTilde(line)
       if chosenDotfile == line:
         terminal.styledWriteLine(stdout, fgRed, "You already added that file.")
+        discard readLine(stdin)
+        return
 
     # Special case, is there is an entry in Storagefile but not the actual file
     # So then copy it over nontheless
@@ -90,9 +92,10 @@ proc addNewFile(chosenDotfile: string) =
           discard
         of "y", "Y":
           os.copyFileToDir(chosenDotfile, BackupLocation)
+          terminal.styledWrite(stdout, fgGreen, "Backup successfully created.")
         else:
           os.copyFileToDir(chosenDotfile, BackupLocation)
-
+          terminal.styledWrite(stdout, fgGreen, "Backup successfully created.")
 
       except OSError as e:
         terminal.styledWriteLine(stdout, fgRed,
