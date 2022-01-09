@@ -68,10 +68,17 @@ funny journey will lead to.
 * [ ] Link only unlinked files
 * [X] Make `CTD` usable by passing parameters to the binary (linking missing)
 * [X] Revert all links and replace them with the actual files
-* [ ] Option to backup added origin files
+* [X] Option to backup added origin files
 * [ ] Option to refresh backup files to current state
 * [X] When listing all saved files, indicate already linked ones
 * [ ] Testing, Testing, Testing!
 
 
 To be continued
+
+## Known Bugs
+
+* If you have a dangling symlink pointing to ctd dotfiles/ dir, you can not
+  add that file via ctd. In this case use `cp --remove-destination source target`
+  and copy your origin file where it belongs. After that, you should be able
+  to add it.

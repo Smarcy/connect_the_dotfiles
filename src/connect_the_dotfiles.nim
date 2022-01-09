@@ -3,7 +3,8 @@ from std/os import execShellCmd, fileExists, extractFilename, createSymlink,
     paramCount, moveFile, expandSymlink, symlinkExists
 from std/terminal import styledWriteLine, ForegroundColor
 from std/parseopt import getOpt, cmdLongOption, cmdShortOption
-from std/hashes import hash
+from std/hashes import hash, Hash
+from std/strutils import contains
 
 const ProgramDir = os.getHomeDir() & ".config/ctd/"
 const StorageFile = os.getHomeDir() & ".config/ctd/data.txt"
@@ -38,7 +39,6 @@ proc printUsage() =
   ##[ Obvious. ]##
   echo usageMsg
 
-
 proc addNewFile(chosenDotfile: string) =
   ##[ Add a new dotfile/location-combination to the storage file. ]##
   var
@@ -48,6 +48,11 @@ proc addNewFile(chosenDotfile: string) =
 
   # chosenDotfile is empty if addNewFile is called from within the binary, without cmdline params
   if chosenDotfile == "":
+
+    if not fileExists(Storagefile):
+      open(ProgramDir & "data.txt", fmWrite).close()
+
+
     discard os.execShellCmd("clear")
     echo "Type the full path to the dotfile, including its name"
 
@@ -62,8 +67,18 @@ proc addNewFile(chosenDotfile: string) =
       var line = os.expandTilde(line)
       if chosenDotfile == line:
         terminal.styledWriteLine(stdout, fgRed, "You already added that file.")
-        writeEntry = false
 
+    # Special case, is there is an entry in Storagefile but not the actual file
+    # So then copy it over nontheless
+    echo "a"
+    if (readFile(StorageFile).contains(chosenDotfile)):
+      echo "A"
+      if DotfilesLocation.contains(chosenDotfile):
+        echo "B"
+        writeEntry = true
+      else:
+        echo "C"
+        writeEntry = false
 
     f = open(StorageFile, fmAppend)
     defer: f.close()
@@ -82,7 +97,7 @@ proc addNewFile(chosenDotfile: string) =
         of "y", "Y":
           os.copyFileToDir(chosenDotfile, BackupLocation)
         else:
-          discard
+          os.copyFileToDir(chosenDotfile, BackupLocation)
 
 
       except OSError as e:
@@ -94,13 +109,18 @@ proc addNewFile(chosenDotfile: string) =
 proc isLinked(s: string): bool =
 
   let f = open(StorageFile, fmRead)
+  defer: f.close()
+
+  var filesLinkedToHash: Hash
+
   for line in f.lines:
-
-    let
+    if symlinkExists(line):
       filesLinkedToHash = hash(os.expandSymlink(line))
-      dotfileHash = hash(DotfilesLocation & os.extractFilename(line))
 
-    if filesLinkedToHash == dotfileHash: return true
+      let
+        dotfileHash = hash(DotfilesLocation & os.extractFilename(line))
+
+      if filesLinkedToHash == dotfileHash: return true
 
   return false
 
@@ -118,6 +138,7 @@ proc printSavedFiles(waitForUserInput: bool) =
   if os.fileExists(StorageFile):
 
     let f = open(StorageFile, fmRead)
+    defer: f.close()
 
 
     for line in f.lines:
@@ -127,10 +148,9 @@ proc printSavedFiles(waitForUserInput: bool) =
           res = line & " [linked]"
       if line.isBackedUp():
         res = res & " [backup]"
+      echo res
   else:
     echo "No saved files yet!"
-
-  echo res
 
   if waitForUserInput:
     discard readLine(stdin)
@@ -244,6 +264,7 @@ proc main() =
   discard os.existsOrCreateDir(ProgramDir)
   discard os.existsOrCreateDir(DotfilesLocation)
   discard os.existsOrCreateDir(BackupLocation)
+  discard open(StorageFile, fmAppend)
 
   while true:
     discard os.execShellCmd("clear")
