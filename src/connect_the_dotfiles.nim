@@ -70,23 +70,17 @@ proc addNewFile(chosenDotfile: string) =
 
     # Special case, is there is an entry in Storagefile but not the actual file
     # So then copy it over nontheless
-    echo "a"
-    if (readFile(StorageFile).contains(chosenDotfile)):
-      echo "A"
-      if DotfilesLocation.contains(chosenDotfile):
-        echo "B"
-        writeEntry = true
-      else:
-        echo "C"
-        writeEntry = false
+    if (readFile(StorageFile).contains(chosenDotfile)) or symlinkExists(chosenDotfile):
+      copyFileToDir("/home/marc/git/dotfiles/.vimrc", DotfilesLocation)
+      writeEntry = true
 
     f = open(StorageFile, fmAppend)
     defer: f.close()
 
     if os.fileExists(chosenDotfile) and writeEntry:
       try:
-        os.copyFileToDir(os.expandTilde(chosenDotfile), DotfilesLocation)
-        io.writeLine(f, os.expandTilde(chosenDotfile))
+        os.copyFileToDir(chosenDotfile, DotfilesLocation)
+        io.writeLine(f, chosenDotfile)
 
         terminal.styledWriteLine(stdout, fgYellow,
             "Do you want to create a backup of the origin file? [Y/n]")
