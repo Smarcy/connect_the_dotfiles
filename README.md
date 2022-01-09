@@ -59,23 +59,5 @@ port to Windows anytime, yet.
 
 ## Future Ideas
 
-This is the first version that is even running and working,
-therefore it is not doing too much yet and I'm not even sure yet where this
-funny journey will lead to.
-
-## TODO
-
-* [X] Remove existing files
-* [X] Link only selected files
-* [ ] Link only unlinked files
-* [X] Make `CTD` usable by passing parameters to the binary (linking missing)
-* [X] Revert all links and replace them with the actual files
-* [X] Option to backup added origin files
-* [ ] Option to refresh backup files to current state
-* [X] When listing all saved files, indicate already linked ones
-* [ ] Testing, Testing, Testing!
-
-
-To be continued
-
-## Known Bugs
+- Let User choose alls relevant directory locations
+- Let user choose location and name of Storagefile
