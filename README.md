@@ -25,6 +25,8 @@ If you do not read carefully before you type, **you may mess up your system irre
 This software does create symlinks on your machine and even, if wanted, delete files.
 Thus, **think** before you type. Even better: study the source code.
 
+**I am not responsible for any erased, deleted or not recoverable in any way files.**
+
 ## Installation
 
 * Install Nim (I recommend [choosenim](https://github.com/dom96/choosenim))
