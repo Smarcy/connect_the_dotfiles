@@ -51,7 +51,6 @@ Relevant files & directories:
 * `~/.config/ctd/dotfiles/` (You want this to be a Git Repo)
 * `~/.config/ctd/backups/`
 
-
 ## OS Support
 
 Right now I am concentrating on Linux only and I do not intend to
