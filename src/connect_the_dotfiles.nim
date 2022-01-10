@@ -114,12 +114,9 @@ proc isLinked(s: string): bool =
     if symlinkExists(line):
       filesLinkedToHash = hash(os.expandSymlink(line))
 
-      let
-        dotfileHash = hash(DotfilesLocation & os.extractFilename(line))
+      let dotfileHash = hash(DotfilesLocation & os.extractFilename(line))
 
-      if filesLinkedToHash == dotfileHash: return true
-
-  return false
+      return filesLinkedToHash == dotfileHash
 
 proc isBackedUp(line: string): bool =
 
@@ -161,6 +158,7 @@ proc removeFileFromList(chosenDotfile: string) =
   if not os.fileExists(StorageFile):
     echo "No saved files yet!"
     discard readLine(stdin)
+    return
   else:
     if chosenDotfile == "":
       printSavedFiles(false)
@@ -184,6 +182,14 @@ proc removeFileFromList(chosenDotfile: string) =
     let fileName = os.extractFilename(line)
     if fileToRemove == fileName:
       os.moveFile(DotfilesLocation & fileName, line)
+
+      terminal.styledWriteLine(stdout, fgYellow, "Do you want to remove the backup, too? [y/N]")
+      case readLine(stdin):
+        of "y", "Y":
+          if fileExists(BackupLocation & fileName):
+            removeFile(BackupLocation & fileName)
+        else:
+          discard
       continue
     else:
       io.writeLine(tmpFile, line)
@@ -261,7 +267,7 @@ proc main() =
   discard os.existsOrCreateDir(ProgramDir)
   discard os.existsOrCreateDir(DotfilesLocation)
   discard os.existsOrCreateDir(BackupLocation)
-  discard open(StorageFile, fmAppend)
+  open(StorageFile, fmAppend).close()
 
   while true:
     discard os.execShellCmd("clear")
