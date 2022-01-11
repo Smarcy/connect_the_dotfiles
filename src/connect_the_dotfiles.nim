@@ -101,18 +101,19 @@ proc addNewFile(chosenDotfile: string) =
   if waitForUserInput: discard readLine(stdin)
 
 proc isLinked(s: string): bool =
-
+  ##[ Return true if a file in Storagefile has an active symlink. ]##
   let f = open(StorageFile, fmRead)
   defer: f.close()
 
-  for line in f.lines:
-    if symlinkExists(line):
-      let
-        fileLinkedToHash = hash(line)
-        dotfileHash = hash(DotfilesLocation & os.extractFilename(line))
-      result = fileLinkedToHash == dotfileHash
+  if symlinkExists(s):
+    let
+      filesLinkedToHash = hash(os.expandSymlink(s))
+      dotfileHash = hash(DotfilesLocation & os.extractFilename(s))
+    return filesLinkedToHash == dotfileHash
 
 proc isBackedUp(line: string): bool =
+  ##[ Return true if a file in Storagefile has a backup in Backupdir. ]##
+  ## TODO: IDEA: Check for hashes as well? Maybe backup could be an old file?
   result = fileExists(BackupLocation & extractFilename(line))
 
 proc printSavedFiles(waitForUserInput: bool) =
@@ -229,7 +230,14 @@ proc linkAllSavedFiles() =
   #     discard os.execShellCmd("ln -s ./dotfiles/" & file
 
 proc linkAllUnlinkedFiles() =
-  return
+  let f = open(StorageFile, fmRead)
+  defer: f.close()
+
+  for line in f.lines:
+    if not line.isLinked():
+      echo line
+
+  discard readLine(stdin)
 
 proc revertAllLinks() =
   var f: File
