@@ -110,10 +110,10 @@ proc isLinked(s: string): bool =
       let
         fileLinkedToHash = hash(line)
         dotfileHash = hash(DotfilesLocation & os.extractFilename(line))
-      return fileLinkedToHash == dotfileHash
+      result = fileLinkedToHash == dotfileHash
 
 proc isBackedUp(line: string): bool =
-  return fileExists(BackupLocation & extractFilename(line))
+  result = fileExists(BackupLocation & extractFilename(line))
 
 proc printSavedFiles(waitForUserInput: bool) =
   ##[ Read the entire storage file at once and print its contents. ]##
@@ -140,9 +140,8 @@ proc printSavedFiles(waitForUserInput: bool) =
 
 proc removeFileFromList(chosenDotfile: string) =
   ##[ Remove file from StorageFile ]##
-  var
-    f: File
-    tmpFile = open("temp.txt", fmWrite)
+  let tmpFile = open("temp.txt", fmWrite)
+  var f: File
 
   if not os.fileExists(StorageFile):
     echo "No saved files yet!"

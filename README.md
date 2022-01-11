@@ -59,4 +59,5 @@ port to Windows anytime, yet.
 ## Future Ideas
 
 - Let user choose all relevant directory locations (progDir, dotfileDir, backupDir, storageFile)
+- Let user cleanup DotfilesLocation using Storagefile
 
