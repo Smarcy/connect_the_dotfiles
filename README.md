@@ -37,7 +37,7 @@ Thus, **think** before you type. Even better: study the source code.
   copy those files there and let `CTD` create links at their destined location.
   All you need to transfer from one system to another, assuming your dotfiles
   are in a repository, is the so called `Storagefile`, which indicates, where
-  the files should be linked. Since the `Storagefile` is just plain text,
+  the symlinks should be created for each file. Since the `Storagefile` is just plain text,
   you can even write it yourself! So just import your repo into `DotfileLocation`
   and get started!
 

@@ -1,6 +1,6 @@
 from std/os import execShellCmd, fileExists, extractFilename, createSymlink,
     getHomeDir, expandTilde, copyFileToDir, removeFile, existsOrCreateDir,
-    paramCount, moveFile, expandSymlink, symlinkExists
+    paramCount, moveFile, expandSymlink, symlinkExists, getFileSize
 from std/terminal import styledWriteLine, ForegroundColor
 from std/parseopt import getOpt, cmdLongOption, cmdShortOption
 from std/hashes import hash, Hash
@@ -116,8 +116,9 @@ proc isBackedUp(line: string): bool =
 proc printSavedFiles(waitForUserInput: bool) =
   ##[ Read the entire storage file at once and print its contents. ]##
   var res: string
-  if os.fileExists(StorageFile):
-
+  if not os.fileExists(StorageFile) or os.getFileSize(StorageFile) == 0:
+    echo "No saved files yet!"
+  else:
     let f = open(StorageFile, fmRead)
     defer: f.close()
 
@@ -130,8 +131,6 @@ proc printSavedFiles(waitForUserInput: bool) =
       if line.isBackedUp():
         res = res & " [backup]"
       echo res
-  else:
-    echo "No saved files yet!"
 
   if waitForUserInput:
     discard readLine(stdin)
@@ -141,7 +140,7 @@ proc removeFileFromList(chosenDotfile: string) =
   let tmpFile = open("temp.txt", fmWrite)
   var f: File
 
-  if not os.fileExists(StorageFile):
+  if not os.fileExists(StorageFile) or os.getFileSize(StorageFile) == 0:
     echo "No saved files yet!"
     discard readLine(stdin)
     return
@@ -187,7 +186,7 @@ proc linkAllSavedFiles() =
   ##[ Create Symlinks for all files that have been added before. ]##
   var f: File
 
-  if not os.fileExists(StorageFile):
+  if not os.fileExists(StorageFile) or os.getFileSize(StorageFile) == 0:
     echo "No saved files yet!"
     discard readLine(stdin)
   else:
@@ -253,14 +252,18 @@ proc revertAllLinks() =
       removeFile(line)
       copyFileToDir(storedDotfile, pathWithoutFilename)
 
-proc main() =
-  ##[ Entry Point and main loop. ]##
-
-  # Create mandatory dirs on first start
+proc initDirectoryStructure() =
+  ##[ Create mandatory dirs.
+    This proc is called when starting the bin or evaluating a param. ]##
   discard os.existsOrCreateDir(ProgramDir)
   discard os.existsOrCreateDir(DotfilesLocation)
   discard os.existsOrCreateDir(BackupLocation)
   open(StorageFile, fmAppend).close()
+
+proc main() =
+  ##[ Entry Point and main loop. ]##
+
+  initDirectoryStructure()
 
   while true:
     discard os.execShellCmd("clear")
@@ -288,6 +291,8 @@ proc main() =
         continue
 
 when isMainModule:
+  initDirectoryStructure()
+
   if os.paramCount() > 0:
     for kind, key, val in getOpt():
       case kind:
