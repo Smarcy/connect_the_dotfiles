@@ -102,9 +102,6 @@ proc addNewFile(chosenDotfile: string) =
 
 proc isLinked(s: string): bool =
   ##[ Return true if a file in Storagefile has an active symlink. ]##
-  let f = open(StorageFile, fmRead)
-  defer: f.close()
-
   if symlinkExists(s):
     let
       filesLinkedToHash = hash(os.expandSymlink(s))
