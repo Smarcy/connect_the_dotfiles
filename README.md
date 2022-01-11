@@ -58,5 +58,5 @@ port to Windows anytime, yet.
 
 ## Future Ideas
 
-- Let user choose all relevant directory locations
-- Let user choose location and name of Storagefile
+- Let user choose all relevant directory locations (progDir, dotfileDir, backupDir, storageFile)
+

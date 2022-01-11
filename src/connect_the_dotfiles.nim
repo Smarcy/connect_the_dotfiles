@@ -88,11 +88,8 @@ proc addNewFile(chosenDotfile: string) =
             "Do you want to create a backup of the origin file? [Y/n]")
 
         case readLine(stdin)
-        of "n":
+        of "N", "n":
           discard
-        of "y", "Y":
-          os.copyFileToDir(chosenDotfile, BackupLocation)
-          terminal.styledWrite(stdout, fgGreen, "Backup successfully created.")
         else:
           os.copyFileToDir(chosenDotfile, BackupLocation)
           terminal.styledWrite(stdout, fgGreen, "Backup successfully created.")
@@ -108,23 +105,15 @@ proc isLinked(s: string): bool =
   let f = open(StorageFile, fmRead)
   defer: f.close()
 
-  var filesLinkedToHash: Hash
-
   for line in f.lines:
     if symlinkExists(line):
-      filesLinkedToHash = hash(os.expandSymlink(line))
-
-      let dotfileHash = hash(DotfilesLocation & os.extractFilename(line))
-
-      return filesLinkedToHash == dotfileHash
+      let
+        fileLinkedToHash = hash(line)
+        dotfileHash = hash(DotfilesLocation & os.extractFilename(line))
+      return fileLinkedToHash == dotfileHash
 
 proc isBackedUp(line: string): bool =
-
-  if fileExists(BackupLocation & extractFilename(line)):
-    result = true
-  else:
-    result = false
-
+  return fileExists(BackupLocation & extractFilename(line))
 
 proc printSavedFiles(waitForUserInput: bool) =
   ##[ Read the entire storage file at once and print its contents. ]##
