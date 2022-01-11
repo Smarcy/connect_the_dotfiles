@@ -47,7 +47,7 @@ Thus, **think** before you type. Even better: study the source code.
 * Clone this repository
 * Run `nimble m` in the `connect_the_dotfiles/` directory
 * This will create and run a binary in the `bin/` directory
-  * You can also run `nimble b` to create the binary without immediately running it
+  * You can also run `nimble r` to create the binary without immediately running it
 * Start the binary or pass parameters to it (`--help` for usage guide)
 
 ## Info
