@@ -27,6 +27,20 @@ Thus, **think** before you type. Even better: study the source code.
 
 **I am not responsible for any erased, deleted or not recoverable file in any way.**
 
+## Functionality
+
+- Gather all your configuration files in a single directory
+  - It is recommended to make that specific directory version controlled (e.g. `Git`)
+- Let `CTD` automatically create links at the needed location
+- If you set up a new system and already have certain configuration files,
+  or other mandatory files, you may just let `CTD` create its directories,
+  copy those files there and let `CTD` create links at their destined location.
+  All you need to transfer from one system to another, assuming your dotfiles
+  are in a repository, is the so called `Storagefile`, which indicates, where
+  the files should be linked. Since the `Storagefile` is just plain text,
+  you can even write it yourself! So just import your repo into `DotfileLocation`
+  and get started!
+
 ## Installation
 
 * Install Nim (I recommend [choosenim](https://github.com/dom96/choosenim))
@@ -35,12 +49,6 @@ Thus, **think** before you type. Even better: study the source code.
 * This will create and run a binary in the `bin/` directory
   * You can also run `nimble b` to create the binary without immediately running it
 * Start the binary or pass parameters to it (`--help` for usage guide)
-
-## Functionality
-
-- Gather all your configuration files in a single directory
-  - It is recommended to make that specific directory version controlled (e.g. `Git`)
-- Let `CTD` automatically create links at the needed location
 
 ## Info
 
