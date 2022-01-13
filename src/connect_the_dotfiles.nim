@@ -9,7 +9,7 @@ from std/strutils import contains
 const ProgramDir = os.getHomeDir() & ".config/ctd/"
 const StorageFile = os.getHomeDir() & ".config/ctd/data.txt"
 const DotfilesLocation = os.getHomeDir() & ".config/ctd/dotfiles/"
-const BackupLocation = os.getHomeDir() & ".config/ctd/backups/"
+const BackupsLocation = os.getHomeDir() & ".config/ctd/backups/"
 
 const usageMsg = """
 
@@ -40,7 +40,7 @@ proc printUsage() =
   echo usageMsg
 
 proc addNewFile(chosenDotfile: string) =
-  ##[ Add a new dotfile/location-combination to the storage file. ]##
+  ##[ Add a new entry to the Storagefile. ]##
   var
     chosenDotfile = chosenDotfile
     waitForUserInput: bool
@@ -91,7 +91,7 @@ proc addNewFile(chosenDotfile: string) =
         of "N", "n":
           discard
         else:
-          os.copyFileToDir(chosenDotfile, BackupLocation)
+          os.copyFileToDir(chosenDotfile, BackupsLocation)
           terminal.styledWrite(stdout, fgGreen, "Backup successfully created.")
 
       except OSError as e:
@@ -111,7 +111,7 @@ proc isLinked(s: string): bool =
 proc isBackedUp(line: string): bool =
   ##[ Return true if a file in Storagefile has a backup in Backupdir. ]##
   ## TODO: IDEA: Check for hashes as well? Maybe backup could be an old file?
-  result = fileExists(BackupLocation & extractFilename(line))
+  result = fileExists(BackupsLocation & extractFilename(line))
 
 proc printSavedFiles(waitForUserInput: bool) =
   ##[ Read the entire storage file at once and print its contents. ]##
@@ -171,8 +171,8 @@ proc removeFileFromList(chosenDotfile: string) =
       terminal.styledWriteLine(stdout, fgYellow, "Do you want to remove the backup, too? [y/N]")
       case readLine(stdin):
         of "y", "Y":
-          if fileExists(BackupLocation & fileName):
-            removeFile(BackupLocation & fileName)
+          if fileExists(BackupsLocation & fileName):
+            removeFile(BackupsLocation & fileName)
         else:
           discard
       continue
@@ -257,7 +257,7 @@ proc initDirectoryStructure() =
     This proc is called when starting the bin or evaluating a param. ]##
   discard os.existsOrCreateDir(ProgramDir)
   discard os.existsOrCreateDir(DotfilesLocation)
-  discard os.existsOrCreateDir(BackupLocation)
+  discard os.existsOrCreateDir(BackupsLocation)
   open(StorageFile, fmAppend).close()
 
 proc main() =

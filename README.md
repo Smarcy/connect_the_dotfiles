@@ -45,7 +45,7 @@ Thus, **think** before you type. Even better: study the source code.
 
 * Install Nim (I recommend [choosenim](https://github.com/dom96/choosenim))
 * Clone this repository
-* Run `nimble m` in the `connect_the_dotfiles/` directory
+* Run `nimble rr` in the `connect_the_dotfiles/` directory
 * This will create and run a binary in the `bin/` directory
   * You can also run `nimble r` to create the binary without immediately running it
 * Start the binary or pass parameters to it (`--help` for usage guide)
@@ -64,8 +64,8 @@ Relevant files & directories:
 Right now I am concentrating on Linux only and I do not intend to
 port to Windows anytime, yet.
 
-## Future Ideas
+## Future [ Ideas | Directions | TODOs ]
 
-- Let user choose all relevant directory locations (progDir, dotfileDir, backupDir, storageFile)
+- Let user choose all relevant directory locations (ProgDir, DotfileDir, BackupDir, Storagefile)
 - Let user cleanup DotfilesLocation using Storagefile
 
