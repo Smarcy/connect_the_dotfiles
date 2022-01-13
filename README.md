@@ -61,8 +61,12 @@ Relevant files & directories:
 
 ## OS Support
 
-Right now I am concentrating on Linux only and I do not intend to
-port to Windows anytime, yet.
+Since `CTD` is using symlinks and mechanics that do not really exist on
+Windows in this way it is aimed for Linux-based operating systems (I do not know
+enough about macOS to say anything about compatibility at this point).
+
+It was explicitly tested on my home machine which runs Manjaro on
+Kernel version 5.4.169 right now.
 
 ## Future [ Ideas | Directions | TODOs ]
 
