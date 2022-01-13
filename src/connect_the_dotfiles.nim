@@ -70,10 +70,10 @@ proc addNewFile(chosenDotfile: string) =
         discard readLine(stdin)
         return
 
-    # Special case, is there is an entry in Storagefile but not the actual file
-    # So then copy it over nontheless
+    # Special case, if there is an entry in Storagefile but not the actual file
+    # Then copy it over nonetheless
     if (readFile(StorageFile).contains(chosenDotfile)) or symlinkExists(chosenDotfile):
-      copyFileToDir("/home/marc/git/dotfiles/.vimrc", DotfilesLocation)
+      copyFileToDir(chosenDotfile, DotfilesLocation)
       writeEntry = true
 
     f = open(StorageFile, fmAppend)

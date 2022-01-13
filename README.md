@@ -68,4 +68,5 @@ port to Windows anytime, yet.
 
 - Let user choose all relevant directory locations (ProgDir, DotfileDir, BackupDir, Storagefile)
 - Let user cleanup DotfilesLocation using Storagefile
+- Modularize the project away from a single monolith file
 
