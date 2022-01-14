@@ -226,6 +226,8 @@ proc linkAllSavedFiles() =
   #     discard os.execShellCmd("ln -s ./dotfiles/" & file
 
 proc linkAllUnlinkedFiles() =
+  ##[ Ask the user to link every unlinked file. ]##
+  #TODO: Atm it is just listing, not linking.
   let f = open(StorageFile, fmRead)
   defer: f.close()
 
@@ -293,6 +295,8 @@ proc main() =
 when isMainModule:
   initDirectoryStructure()
 
+  # If there are any CLI params passed, evaluate those
+  # Otherwise run the bin's usual main() proc
   if os.paramCount() > 0:
     for kind, key, val in getOpt():
       case kind:
@@ -301,7 +305,7 @@ when isMainModule:
             of "add", "a":
               addNewFile(val)
             of "list", "l":
-              printSavedFiles(false)
+              printSavedFiles(waitForUserInput = false)
             of "remove", "r":
               removeFileFromList(val)
             else: printUsage()

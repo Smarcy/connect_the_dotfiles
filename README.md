@@ -66,7 +66,7 @@ Windows in this way it is aimed for Linux-based operating systems (I do not know
 enough about macOS to say anything about compatibility at this point).
 
 It was explicitly tested on my home machine which runs Manjaro on
-Kernel version 5.4.169 right now.
+Kernel version 5.4.169 on a Lenovo ThinkPad L480 right now.
 
 ## Future [ Ideas | Directions | TODOs ]
 
