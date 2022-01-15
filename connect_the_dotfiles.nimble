@@ -27,3 +27,5 @@ task r, "Release Build":
 task rr, "Release Build and Run..":
   exec("nim c -d:release --opt:size --passL:-s -r -o:bin/ctd src/connect_the_dotfiles.nim")
 
+task fullDoc, "Create NimDoc with private Procss etc.":
+  exec("nim doc --docInternal src/connect_the_dotfiles.nim")

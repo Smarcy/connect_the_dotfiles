@@ -1,39 +1,20 @@
 from std/os import execShellCmd, fileExists, extractFilename, createSymlink,
-    getHomeDir, expandTilde, copyFileToDir, removeFile, existsOrCreateDir,
+    expandTilde, copyFileToDir, removeFile, existsOrCreateDir,
     paramCount, moveFile, expandSymlink, symlinkExists, getFileSize
 from std/terminal import styledWriteLine, ForegroundColor
 from std/parseopt import getOpt, cmdLongOption, cmdShortOption
 from std/hashes import hash, Hash
 from std/strutils import contains
+from misc import getUsageMsg, getMenuText, getProgramDir, getStorageFileLoc,
+    getDotfilesLoc, getBackupsLoc, initDirectoryStructureAndStorageFile
 
-const ProgramDir = os.getHomeDir() & ".config/ctd/"
-const StorageFile = os.getHomeDir() & ".config/ctd/data.txt"
-const DotfilesLocation = os.getHomeDir() & ".config/ctd/dotfiles/"
-const BackupsLocation = os.getHomeDir() & ".config/ctd/backups/"
+const ProgramDir = misc.getProgramDir()
+const StorageFile = misc.getStorageFileLoc()
+const DotfilesLoc = misc.getDotfilesLoc()
+const BackupsLoc = misc.getBackupsLoc()
 
-const usageMsg = """
-
-  Available parameters:
-
-  --add=<path>, -a=<path>      Add given file to storage
-  --remove=<.file> -r=<.file>  Remove a file from storage (insert only dot+filename!)
-  --list, -l                   List all saved files
-  --help, -h                   Print usage guide (this)
-"""
-
-const menuText = """
-Welcome to connect_the_dotfiles, your place to organize your dotties!
-Please choose an option:
-
-[1]: Add new dotfile
-[2]: Remove existing dotfile
-[3]: List saved dotfiles
-[4]: Link all saved dotfiles
-[5]: Link all unlinked dotfiles
-[6]: Replace all links with the origin files
-[q]: Quit
-
-"""
+const usageMsg = misc.getUsageMsg()
+const menuText = misc.getMenuText()
 
 proc printUsage() =
   ##[ Obvious. ]##
@@ -73,7 +54,7 @@ proc addNewFile(chosenDotfile: string) =
     # Special case, if there is an entry in Storagefile but not the actual file
     # Then copy it over nonetheless
     if (readFile(StorageFile).contains(chosenDotfile)) or symlinkExists(chosenDotfile):
-      copyFileToDir(chosenDotfile, DotfilesLocation)
+      copyFileToDir(chosenDotfile, DotfilesLoc)
       writeEntry = true
 
     f = open(StorageFile, fmAppend)
@@ -81,7 +62,7 @@ proc addNewFile(chosenDotfile: string) =
 
     if os.fileExists(chosenDotfile) and writeEntry:
       try:
-        os.copyFileToDir(chosenDotfile, DotfilesLocation)
+        os.copyFileToDir(chosenDotfile, DotfilesLoc)
         io.writeLine(f, chosenDotfile)
 
         terminal.styledWriteLine(stdout, fgYellow,
@@ -91,7 +72,7 @@ proc addNewFile(chosenDotfile: string) =
         of "N", "n":
           discard
         else:
-          os.copyFileToDir(chosenDotfile, BackupsLocation)
+          os.copyFileToDir(chosenDotfile, BackupsLoc)
           terminal.styledWrite(stdout, fgGreen, "Backup successfully created.")
 
       except OSError as e:
@@ -105,13 +86,13 @@ proc isLinked(s: string): bool =
   if symlinkExists(s):
     let
       filesLinkedToHash = hash(os.expandSymlink(s))
-      dotfileHash = hash(DotfilesLocation & os.extractFilename(s))
+      dotfileHash = hash(DotfilesLoc & os.extractFilename(s))
     return filesLinkedToHash == dotfileHash
 
 proc isBackedUp(line: string): bool =
   ##[ Return true if a file in Storagefile has a backup in Backupdir. ]##
   ## TODO: IDEA: Check for hashes as well? Maybe backup could be an old file?
-  result = fileExists(BackupsLocation & extractFilename(line))
+  result = fileExists(BackupsLoc & extractFilename(line))
 
 proc printSavedFiles(waitForUserInput: bool) =
   ##[ Read the entire storage file at once and print its contents. ]##
@@ -166,13 +147,13 @@ proc removeFileFromList(chosenDotfile: string) =
   for line in f.lines:
     let fileName = os.extractFilename(line)
     if fileToRemove == fileName:
-      os.moveFile(DotfilesLocation & fileName, line)
+      os.moveFile(DotfilesLoc & fileName, line)
 
       terminal.styledWriteLine(stdout, fgYellow, "Do you want to remove the backup, too? [y/N]")
       case readLine(stdin):
         of "y", "Y":
-          if fileExists(BackupsLocation & fileName):
-            removeFile(BackupsLocation & fileName)
+          if fileExists(BackupsLoc & fileName):
+            removeFile(BackupsLoc & fileName)
         else:
           discard
       continue
@@ -197,13 +178,13 @@ proc linkAllSavedFiles() =
       discard os.execShellCmd("clear")
       let fileName = os.extractFilename(line)
 
-      echo "Trying to create Symlink: " & DotfilesLocation & fileName &
+      echo "Trying to create Symlink: " & DotfilesLoc & fileName &
           " to: " & line
 
       try:
-        os.createSymlink(DotfilesLocation & fileName, line)
+        os.createSymlink(DotfilesLoc & fileName, line)
         terminal.styledWriteLine(stdout, fgGreen, "Created Symlink: " &
-            DotfilesLocation & fileName & " to: " & line)
+            DotfilesLoc & fileName & " to: " & line)
       except OSError as e:
         terminal.styledWriteLine(stdout, fgRed, "Error: ", e.msg)
         terminal.styledWriteLine(stdout, fgYellow, "Shall the existing file be overwritten? [y/N]")
@@ -211,9 +192,9 @@ proc linkAllSavedFiles() =
         case readLine(stdin):
           of "y":
             os.removeFile(line)
-            os.createSymlink(DotfilesLocation & fileName, line)
+            os.createSymlink(DotfilesLoc & fileName, line)
             terminal.styledWriteLine(stdout, fgGreen, "Created Symlink: " &
-                DotfilesLocation & fileName & " to: " & line)
+                DotfilesLoc & fileName & " to: " & line)
             discard readLine(stdin)
           else:
             discard
@@ -247,25 +228,17 @@ proc revertAllLinks() =
   defer: f.close()
 
   for line in f.lines:
-    let storedDotfile = DotfilesLocation & extractFilename(line)
+    let storedDotfile = DotfilesLoc & extractFilename(line)
     let pathWithoutFilename = line[0 .. ^(len(extractFilename(line))+1)]
 
     if fileExists(storedDotfile) and symlinkExists(line):
       removeFile(line)
       copyFileToDir(storedDotfile, pathWithoutFilename)
 
-proc initDirectoryStructure() =
-  ##[ Create mandatory dirs.
-    This proc is called when starting the bin or evaluating a param. ]##
-  discard os.existsOrCreateDir(ProgramDir)
-  discard os.existsOrCreateDir(DotfilesLocation)
-  discard os.existsOrCreateDir(BackupsLocation)
-  open(StorageFile, fmAppend).close()
-
 proc main() =
   ##[ Entry Point and main loop. ]##
 
-  initDirectoryStructure()
+  misc.initDirectoryStructureAndStorageFile()
 
   while true:
     discard os.execShellCmd("clear")
@@ -293,7 +266,7 @@ proc main() =
         continue
 
 when isMainModule:
-  initDirectoryStructure()
+  misc.initDirectoryStructureAndStorageFile()
 
   # If there are any CLI params passed, evaluate those
   # Otherwise run the bin's usual main() proc
