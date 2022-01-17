@@ -1,6 +1,6 @@
 from std/os import execShellCmd, fileExists, extractFilename, createSymlink,
-    expandTilde, copyFileToDir, removeFile, existsOrCreateDir,
-    paramCount, moveFile, expandSymlink, symlinkExists, getFileSize
+    expandTilde, copyFileToDir, removeFile, paramCount, moveFile,
+    expandSymlink, symlinkExists, getFileSize
 from std/terminal import styledWriteLine, ForegroundColor
 from std/parseopt import getOpt, cmdLongOption, cmdShortOption
 from std/hashes import hash, Hash
@@ -117,7 +117,7 @@ proc printSavedFiles(waitForUserInput: bool) =
     discard readLine(stdin)
 
 proc removeFileFromList(chosenDotfile: string) =
-  ##[ Remove file from StorageFile ]##
+  ##[ Remove file from StorageFile. ]##
   let tmpFile = open("temp.txt", fmWrite)
   var f: File
 
@@ -208,17 +208,37 @@ proc linkAllSavedFiles() =
 
 proc linkAllUnlinkedFiles() =
   ##[ Ask the user to link every unlinked file. ]##
-  #TODO: Atm it is just listing, not linking.
   let f = open(StorageFile, fmRead)
   defer: f.close()
 
   for line in f.lines:
     if not line.isLinked():
-      echo line
+      discard os.execShellCmd("clear")
+      let fileName = os.extractFilename(line)
 
+      echo "Trying to create Symlink: " & DotfilesLoc & fileName &
+          " to: " & line
+
+      try:
+        os.createSymlink(DotfilesLoc & fileName, line)
+        terminal.styledWriteLine(stdout, fgGreen, "Created Symlink: " &
+            DotfilesLoc & fileName & " to: " & line)
+      except OSError as e:
+        terminal.styledWriteLine(stdout, fgRed, "Error: ", e.msg)
+        terminal.styledWriteLine(stdout, fgYellow, "Shall the existing file be overwritten? [y/N]")
+
+        case readLine(stdin):
+          of "y":
+            os.removeFile(line)
+            os.createSymlink(DotfilesLoc & fileName, line)
+            terminal.styledWriteLine(stdout, fgGreen, "Created Symlink: " &
+                DotfilesLoc & fileName & " to: " & line)
+          else:
+            discard
   discard readLine(stdin)
 
 proc revertAllLinks() =
+  ##[ Replace all symlinks with their origin file. ]##
   var f: File
 
   if fileExists(StorageFile):
