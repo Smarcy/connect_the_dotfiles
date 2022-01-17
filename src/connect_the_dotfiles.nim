@@ -163,6 +163,31 @@ proc removeFileFromList(chosenDotfile: string) =
   # Replace StorageFile without the single deleted line
   os.moveFile("temp.txt", StorageFile)
 
+proc linkSingleFile(line: string) =
+  discard os.execShellCmd("clear")
+  let fileName = os.extractFilename(line)
+
+  echo "Trying to create Symlink: " & DotfilesLoc & fileName &
+      " to: " & line
+
+  try:
+    os.createSymlink(DotfilesLoc & fileName, line)
+    terminal.styledWriteLine(stdout, fgGreen, "Created Symlink: " &
+        DotfilesLoc & fileName & " to: " & line)
+  except OSError as e:
+    terminal.styledWriteLine(stdout, fgRed, "Error: ", e.msg)
+    terminal.styledWriteLine(stdout, fgYellow, "Shall the existing file be overwritten? [y/N]")
+
+    case readLine(stdin):
+      of "y":
+        os.removeFile(line)
+        os.createSymlink(DotfilesLoc & fileName, line)
+        terminal.styledWriteLine(stdout, fgGreen, "Created Symlink: " &
+            DotfilesLoc & fileName & " to: " & line)
+        discard readLine(stdin)
+      else:
+        discard
+
 proc linkAllSavedFiles() =
   ##[ Create Symlinks for all files that have been added before. ]##
   var f: File
@@ -175,29 +200,7 @@ proc linkAllSavedFiles() =
     defer: f.close()
 
     for line in f.lines:
-      discard os.execShellCmd("clear")
-      let fileName = os.extractFilename(line)
-
-      echo "Trying to create Symlink: " & DotfilesLoc & fileName &
-          " to: " & line
-
-      try:
-        os.createSymlink(DotfilesLoc & fileName, line)
-        terminal.styledWriteLine(stdout, fgGreen, "Created Symlink: " &
-            DotfilesLoc & fileName & " to: " & line)
-      except OSError as e:
-        terminal.styledWriteLine(stdout, fgRed, "Error: ", e.msg)
-        terminal.styledWriteLine(stdout, fgYellow, "Shall the existing file be overwritten? [y/N]")
-
-        case readLine(stdin):
-          of "y":
-            os.removeFile(line)
-            os.createSymlink(DotfilesLoc & fileName, line)
-            terminal.styledWriteLine(stdout, fgGreen, "Created Symlink: " &
-                DotfilesLoc & fileName & " to: " & line)
-            discard readLine(stdin)
-          else:
-            discard
+      linkSingleFile(line)
 
   # for file in fileNames:
   #   if not fileExists("./dotfiles/" & file):
@@ -213,29 +216,7 @@ proc linkAllUnlinkedFiles() =
 
   for line in f.lines:
     if not line.isLinked():
-      discard os.execShellCmd("clear")
-      let fileName = os.extractFilename(line)
-
-      echo "Trying to create Symlink: " & DotfilesLoc & fileName &
-          " to: " & line
-
-      try:
-        os.createSymlink(DotfilesLoc & fileName, line)
-        terminal.styledWriteLine(stdout, fgGreen, "Created Symlink: " &
-            DotfilesLoc & fileName & " to: " & line)
-      except OSError as e:
-        terminal.styledWriteLine(stdout, fgRed, "Error: ", e.msg)
-        terminal.styledWriteLine(stdout, fgYellow, "Shall the existing file be overwritten? [y/N]")
-
-        case readLine(stdin):
-          of "y":
-            os.removeFile(line)
-            os.createSymlink(DotfilesLoc & fileName, line)
-            terminal.styledWriteLine(stdout, fgGreen, "Created Symlink: " &
-                DotfilesLoc & fileName & " to: " & line)
-          else:
-            discard
-  discard readLine(stdin)
+      linkSingleFile(line)
 
 proc revertAllLinks() =
   ##[ Replace all symlinks with their origin file. ]##
