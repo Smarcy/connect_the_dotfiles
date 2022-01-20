@@ -5,6 +5,7 @@ from std/terminal import styledWriteLine, ForegroundColor
 from std/parseopt import getOpt, cmdLongOption, cmdShortOption
 from std/hashes import hash, Hash
 from std/strutils import contains
+from std/strformat import fmt
 from misc import getUsageMsg, getMenuText, getProgramDir, getStorageFileLoc,
     getDotfilesLoc, getBackupsLoc, initDirectoryStructureAndStorageFile
 
@@ -73,7 +74,8 @@ proc addNewFile(chosenDotfile: string) =
           discard
         else:
           os.copyFileToDir(chosenDotfile, BackupsLoc)
-          terminal.styledWrite(stdout, fgGreen, "Backup successfully created.")
+          terminal.styledWrite(stdout, fgGreen,
+              fmt"Backup successfully created at {BackupsLoc}.")
 
       except OSError as e:
         terminal.styledWriteLine(stdout, fgRed,
@@ -164,6 +166,8 @@ proc removeFileFromList(chosenDotfile: string) =
   os.moveFile("temp.txt", StorageFile)
 
 proc linkSingleFile(line: string) =
+  ##[ This proc is called whenever a file shall be linked.
+    Links a single file and reduces code replication. ]##
   discard os.execShellCmd("clear")
   let fileName = os.extractFilename(line)
 
