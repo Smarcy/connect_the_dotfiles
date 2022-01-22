@@ -1,11 +1,11 @@
 from std/os import execShellCmd, fileExists, extractFilename, createSymlink,
     expandTilde, copyFileToDir, removeFile, paramCount, moveFile,
-    expandSymlink, symlinkExists, getFileSize
+    expandSymlink, symlinkExists, getFileSize, walkDir
 from std/terminal import styledWriteLine, ForegroundColor
 from std/parseopt import getOpt, cmdLongOption, cmdShortOption
 from std/hashes import hash, Hash
 from std/strutils import contains
-from std/strformat import fmt
+from std/sequtils import toSeq
 from misc import getUsageMsg, getMenuText, getProgramDir, getStorageFileLoc,
     getDotfilesLoc, getBackupsLoc, initDirectoryStructureAndStorageFile,
     clearScreen
@@ -76,7 +76,7 @@ proc addNewFile(chosenDotfile: string) =
         else:
           os.copyFileToDir(chosenDotfile, BackupsLoc)
           terminal.styledWrite(stdout, fgGreen,
-              fmt"Backup successfully created at {BackupsLoc}.")
+              "Backup successfully created at " & BackupsLoc)
 
       except OSError as e:
         terminal.styledWriteLine(stdout, fgRed,
@@ -246,16 +246,36 @@ proc revertAllLinks() =
   discard readLine(stdin)
 
 proc cleanupDotfilesDir() =
-  ##[ Compare Storagefile entrys with DotfileDir content and delete diff. ]##
-  var f: File
+  ##[ Compare Storagefile entrys with DotfileDir content and delete diff from DotfileDir. ]##
+  let f = open(StorageFile, fmRead)
 
-#   for line in f.lines:
-#     let fileName = extractFilename(line)
-#     if not fileExists(DotfilesLoc & fileName):
+  let allFilesInDotfileLoc = toSeq(walkDir(DotfilesLoc))
+  var foundFiles: seq[string]
 
+  for line in f.lines:
+    for file in allFilesInDotfileLoc:
+      if extractFilename(line) == extractFilename(file[1]):
+        foundFiles.add(extractFilename(line))
+        break
 
+  for file in allFilesInDotfileLoc:
+    if extractFilename(file[1]) notin foundFiles:
+      misc.clearScreen()
+      terminal.styledWriteLine(stdout, fgYellow, extractFilename(file[1]) &
+        " is in your dotfile directory but not in your storagefile. Do you want to delete it? (Y/n)")
 
+      case readLine(stdin):
+        of "n":
+          continue
+        of "", "y", "Y":
+          echo "Deleting " & DotfilesLoc & extractFilename(file[1])
+          removeFile(DotfilesLoc & extractFilename(file[1]))
+          styledWriteLine(stdout, fgGreen, "Successfully deleted " &
+              DotfilesLoc & extractFilename(file[1]))
+        else:
+          continue
 
+  discard readLine(stdin)
 
 proc main() =
   ##[ Entry Point and main loop. ]##
@@ -282,7 +302,7 @@ proc main() =
         linkAllUnlinkedFiles()
       of "6":
         revertAllLinks()
-      of "r":
+      of "c":
         cleanupDotfilesDir()
       of "q":
         break
