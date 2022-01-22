@@ -7,7 +7,8 @@ from std/hashes import hash, Hash
 from std/strutils import contains
 from std/strformat import fmt
 from misc import getUsageMsg, getMenuText, getProgramDir, getStorageFileLoc,
-    getDotfilesLoc, getBackupsLoc, initDirectoryStructureAndStorageFile
+    getDotfilesLoc, getBackupsLoc, initDirectoryStructureAndStorageFile,
+    clearScreen
 
 const ProgramDir = misc.getProgramDir()
 const StorageFile = misc.getStorageFileLoc()
@@ -35,7 +36,7 @@ proc addNewFile(chosenDotfile: string) =
       open(ProgramDir & "data.txt", fmWrite).close()
 
 
-    discard os.execShellCmd("clear")
+    misc.clearScreen()
     echo "Type the full path to the dotfile, including its name"
 
     waitForUserInput = true
@@ -168,7 +169,7 @@ proc removeFileFromList(chosenDotfile: string) =
 proc linkSingleFile(line: string) =
   ##[ This proc is called whenever a file shall be linked.
     Links a single file and reduces code replication. ]##
-  discard os.execShellCmd("clear")
+  misc.clearScreen()
   let fileName = os.extractFilename(line)
 
   echo "Trying to create Symlink: " & DotfilesLoc & fileName &
@@ -239,6 +240,22 @@ proc revertAllLinks() =
     if fileExists(storedDotfile) and symlinkExists(line):
       removeFile(line)
       copyFileToDir(storedDotfile, pathWithoutFilename)
+      terminal.styledWrite(stdout, fgGreen, "Successfully reverted " & line & "\n")
+    else:
+      terminal.styledWrite(stdout, fgRed, "Could not revert " & line & "\n")
+  discard readLine(stdin)
+
+proc cleanupDotfilesDir() =
+  ##[ Compare Storagefile entrys with DotfileDir content and delete diff. ]##
+  var f: File
+
+#   for line in f.lines:
+#     let fileName = extractFilename(line)
+#     if not fileExists(DotfilesLoc & fileName):
+
+
+
+
 
 proc main() =
   ##[ Entry Point and main loop. ]##
@@ -246,7 +263,7 @@ proc main() =
   misc.initDirectoryStructureAndStorageFile()
 
   while true:
-    discard os.execShellCmd("clear")
+    misc.clearScreen()
 
     echo menuText
 
@@ -265,6 +282,8 @@ proc main() =
         linkAllUnlinkedFiles()
       of "6":
         revertAllLinks()
+      of "r":
+        cleanupDotfilesDir()
       of "q":
         break
       else:

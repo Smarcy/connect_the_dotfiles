@@ -24,6 +24,7 @@ Please choose an option:
 [4]: Link all saved dotfiles
 [5]: Link all unlinked dotfiles
 [6]: Replace all links with the origin files
+[c]: Cleanup Dotfiles Location
 [q]: Quit
 
   """
@@ -52,3 +53,6 @@ proc initDirectoryStructureAndStorageFile*() =
   discard os.existsOrCreateDir(getBackupsLoc())
   open(getStorageFileLoc(), fmAppend).close()
 
+proc clearScreen*() =
+  ##[ Just convenience to clear the terminal screen. ]##
+  discard os.execShellCmd("clear")
