@@ -1,6 +1,7 @@
 from std/os import execShellCmd, fileExists, extractFilename, createSymlink,
     expandTilde, copyFileToDir, removeFile, paramCount, moveFile,
-    expandSymlink, symlinkExists, getFileSize, walkDir
+    expandSymlink, symlinkExists, getFileSize, walkDir, pcFile,
+    pcLinkToFile, pcDir, pcLinkToDir
 from std/terminal import styledWriteLine, ForegroundColor
 from std/parseopt import getOpt, cmdLongOption, cmdShortOption
 from std/hashes import hash, Hash
@@ -248,10 +249,12 @@ proc revertAllLinks() =
 proc cleanupDotfilesDir() =
   ##[ Compare Storagefile entrys with DotfileDir content and delete diff from DotfileDir. ]##
   let f = open(StorageFile, fmRead)
+  let allFilesInDotfileLoc = toSeq(os.walkDir(DotfilesLoc))
 
-  let allFilesInDotfileLoc = toSeq(walkDir(DotfilesLoc))
   var foundFiles: seq[string]
+  var wrongFilesCounter = 0
 
+  # file[0] contains file kind, file[1] contains file path
   for line in f.lines:
     for file in allFilesInDotfileLoc:
       if extractFilename(line) == extractFilename(file[1]):
@@ -259,23 +262,35 @@ proc cleanupDotfilesDir() =
         break
 
   for file in allFilesInDotfileLoc:
-    if extractFilename(file[1]) notin foundFiles:
-      misc.clearScreen()
-      terminal.styledWriteLine(stdout, fgYellow, extractFilename(file[1]) &
-        " is in your dotfile directory but not in your storagefile. Do you want to delete it? (Y/n)")
+    case file[0]
+    # Only look at real files, ignore dirs and links for now.
+    of pcDir, pcLinkToDir, pcLinkToFile:
+      continue
+    of pcFile:
+      if extractFilename(file[1]) notin foundFiles:
+        inc(wrongFilesCounter)
+        misc.clearScreen()
+        terminal.styledWriteLine(stdout, fgYellow, extractFilename(file[1]) &
+          " is in your dotfile directory but not in your storagefile. Do you want to delete it? (Y/n)")
+        terminal.styledWriteLine(stdout, fgRed, "Remember to put the given file back in its correct place as" &
+                                                " it may be only a link there and the file will be lost. Since" &
+                                                " there is no entry in your storage file CTD can not reconstruct the correct path!")
 
-      case readLine(stdin):
-        of "n":
-          continue
-        of "", "y", "Y":
-          echo "Deleting " & DotfilesLoc & extractFilename(file[1])
-          removeFile(DotfilesLoc & extractFilename(file[1]))
-          styledWriteLine(stdout, fgGreen, "Successfully deleted " &
-              DotfilesLoc & extractFilename(file[1]))
-        else:
-          continue
+        case readLine(stdin):
+          of "n":
+            continue
+          of "", "y", "Y":
+            echo "Deleting " & DotfilesLoc & extractFilename(file[1])
+            removeFile(DotfilesLoc & extractFilename(file[1]))
+            styledWriteLine(stdout, fgGreen, "Successfully deleted " &
+                DotfilesLoc & extractFilename(file[1]))
+            discard readLine(stdin)
+          else:
+            continue
 
-  discard readLine(stdin)
+  if wrongFilesCounter == 0:
+    terminal.styledWriteLine(stdout, fgYellow, "There were no superflous files found in your dotfiles directory")
+    discard readLine(stdin)
 
 proc main() =
   ##[ Entry Point and main loop. ]##
